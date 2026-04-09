@@ -1,0 +1,198 @@
+/* ----------------- GENERAL ----------------- */
+.manager-container {
+  display: flex;
+  flex-direction: column;
+  padding: 15px;
+  font-family: Arial, sans-serif;
+  background-color: gray;
+  color: #0D1F44;
+  min-height: 100vh;
+}
+
+/* ----------------- TOP CONTROLS ----------------- */
+.top-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.top-controls .input,
+.top-controls .btn,
+.top-controls .btn-delete {
+  height: 36px;
+  font-size: 0.9rem;
+}
+
+.input {
+  padding: 6px 8px;
+  border: 1px solid #0D1F44;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 150px;
+}
+
+/* Make buttons and input inline and vertically centered */
+.top-controls .btn,
+.top-controls .btn-delete {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+/* ----------------- BUTTONS ----------------- */
+.btn, .btn-primary {
+  background-color: #1054E4;
+  color: white;
+  border: none;
+  padding: 0 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn:hover, .btn-primary:hover {
+  background-color: #0d3bc0;
+}
+
+.btn-delete {
+  background-color: #e54848;
+  color: white;
+  border: none;
+  padding: 0 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-delete:hover {
+  background-color: #b93636;
+}
+
+/* ----------------- ITEM LIST ----------------- */
+.items-list {
+  border-top: 2px solid #0D1F44;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-top: 10px;
+}
+
+.item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+
+.item-title {
+  flex: 1;
+  margin-left: 8px;
+  cursor: pointer;
+}
+
+/* ----------------- MODALS ----------------- */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(13, 31, 68, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal {
+  background-color: #ffffff;
+  color: #0D1F44;
+  padding: 20px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90%;
+  overflow-y: auto;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.modal h2 {
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+.modal .category-input-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  gap: 6px;
+}
+
+.modal input.input {
+  flex: 1;
+}
+
+.modal hr {
+  border: 0;
+  height: 1px;
+  background-color: #0D1F44;
+  margin: 12px 0;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.category-management-section {
+  margin-top: 10px;
+}
+
+.add-category-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+/* ----------------- COMPACT SCROLL ----------------- */
+.items-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.items-list::-webkit-scrollbar-thumb {
+  background-color: #0D1F44;
+  border-radius: 3px;
+}
+
+/* ----------------- SEARCH FILTER MODAL ----------------- */
+.category-input-row label {
+  width: 120px;
+}
+
+/* ----------------- COMPACT FOR SMALL VIEW ----------------- */
+@media (max-width: 600px) {
+  .top-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .item-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .modal {
+    width: 95%;
+    padding: 15px;
+  }
+}

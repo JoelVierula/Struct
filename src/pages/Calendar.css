@@ -1,0 +1,214 @@
+/* =========================
+   CALENDAR PAGE STYLES
+   ========================= */
+
+/* PAGE CONTAINER */
+.calendar-page {
+  background-color: gray;
+  color: #0D1F44;
+  font-family: Arial, sans-serif;
+  padding: 16px;
+  min-height: 100vh;
+}
+
+/* PAGE TITLE */
+.calendar-page h1 {
+  margin-bottom: 12px;
+  text-align: center;
+  color: #0D1F44;
+  font-size: 18px;
+}
+
+/* NAVIGATION BAR */
+.calendar-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.calendar-nav button {
+  background-color: #1054E4; /* bright blue buttons */
+  color: white;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 12px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.calendar-nav button:hover {
+  background-color: #0D1F44; /* dark blue hover */
+}
+
+.calendar-nav .week-range {
+  font-weight: 500;
+  color: #0D1F44;
+  min-width: 180px;
+  text-align: center;
+  font-size: 12px;
+}
+
+/* WEEK GRID */
+.week-grid {
+  display: grid;
+  grid-template-columns: 50px repeat(7, 1fr);
+  border-top: 2px solid #0D1F44;
+  border-left: 2px solid #0D1F44;
+}
+
+.day-header, .time-column, .hour-cell {
+  border-right: 2px solid #0D1F44;
+  border-bottom: 2px solid #0D1F44;
+  padding: 2px;
+  position: relative;
+  background-color: white;
+  font-size: 10px;
+}
+
+.day-header {
+  font-weight: bold;
+  text-align: center;
+  background-color: gray;
+}
+
+.time-column {
+  text-align: right;
+  padding-right: 2px;
+  background-color: gray;
+}
+
+.hour-cell {
+  height: 30px; /* compact height */
+  position: relative;
+  background-color: gray;
+}
+
+.hour-cell.today {
+  background-color: #1054E4; /* light blue highlight for today */
+}
+
+/* EVENT BOX */
+.event {
+  background-color: #1054E4;
+  color: white;
+  padding: 1px 4px;
+  border-radius: 4px;
+  font-size: 10px;
+  position: absolute;
+  left: 2.5%;
+  width: 95%;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+/* UPCOMING EVENTS */
+.upcoming-events {
+  margin-top: 16px;
+}
+
+.upcoming-events h2 {
+  margin-bottom: 6px;
+  font-size: 14px;
+  color: #0D1F44;
+}
+
+.upcoming-events p {
+  color: #666;
+  font-size: 12px;
+}
+
+.upcoming-events ul {
+  padding-left: 16px;
+  font-size: 12px;
+}
+
+.upcoming-events li {
+  margin-bottom: 4px;
+  cursor: pointer;
+}
+
+/* MODALS */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(13,31,68,0.6); /* dark blue overlay */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 16px; /* compact padding */
+  border-radius: 12px;
+  width: 300px;
+  max-width: 90%;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.modal-content h2 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.modal-content input {
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #d0d7e2;
+  outline: none;
+  font-size: 12px;
+}
+
+.modal-content input:focus {
+  border-color: #1054E4;
+  box-shadow: 0 0 0 2px rgba(16,84,228,0.15);
+}
+
+/* MODAL BUTTONS */
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.modal-buttons button {
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 12px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.modal-buttons button:first-child {
+  background-color: #0D1F44;
+  color: white;
+}
+
+.modal-buttons button:first-child:hover {
+  background-color: #1054E4;
+}
+
+.modal-buttons button:last-child {
+  background-color: #1054E4;
+  color: white;
+}
+
+.modal-buttons button:last-child:hover {
+  background-color: #0D1F44;
+}
