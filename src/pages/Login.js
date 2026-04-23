@@ -14,6 +14,8 @@ export default function LoginPage() {
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
 
+  const [resetEmailSent, setResetEmailSent] = useState(false);
+
   const [registrationData, setRegistrationData] = useState({
     email: "",
     password: "",
@@ -46,6 +48,12 @@ export default function LoginPage() {
     };
   }, []);
 
+  // OPEN LOGIN MODAL (reset forgot password state)
+  const openLoginModal = () => {
+    setResetEmailSent(false);
+    setShowLogin(true);
+  };
+
   // LOGIN
   const handleLogin = async () => {
     const { error } = await supabase.auth.signInWithPassword({
@@ -58,6 +66,24 @@ export default function LoginPage() {
     } else {
       setIsLoggedIn(true);
       closeAllModals();
+    }
+  };
+
+  // FORGOT PASSWORD
+  const handleForgotPassword = async () => {
+    if (!loginEmail) {
+      alert("Please enter your email first.");
+      return;
+    }
+
+    const { error } = await supabase.auth.resetPasswordForEmail(loginEmail, {
+      redirectTo: "http://localhost:3000/reset-password"
+    });
+
+    if (error) {
+      alert(error.message);
+    } else {
+      setResetEmailSent(true);
     }
   };
 
@@ -140,7 +166,7 @@ export default function LoginPage() {
             <>
               <button
                 className="btn"
-                onClick={() => setShowLogin(true)}
+                onClick={openLoginModal}
               >
                 Login
               </button>
@@ -193,6 +219,33 @@ export default function LoginPage() {
               value={loginPassword}
               onChange={(e) => setLoginPassword(e.target.value)}
             />
+
+            {/* FORGOT PASSWORD */}
+            {!resetEmailSent ? (
+              <p
+                style={{
+                  cursor: "pointer",
+                  color: "#007bff",
+                  fontSize: "14px",
+                  marginTop: "5px",
+                  textAlign: "left"
+                }}
+                onClick={handleForgotPassword}
+              >
+                Forgot password?
+              </p>
+            ) : (
+              <p
+                style={{
+                  color: "green",
+                  fontSize: "14px",
+                  marginTop: "5px",
+                  textAlign: "left"
+                }}
+              >
+                Reset email sent! Check your inbox.
+              </p>
+            )}
 
             <div className="btn-row">
               <button className="btn" onClick={handleLogin}>

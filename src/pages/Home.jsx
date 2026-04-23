@@ -1,4 +1,3 @@
-// Home.jsx
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { fetchItems, addItem, deleteListing } from './todoLogic';
@@ -6,7 +5,6 @@ import { supabase } from '../supabaseClient';
 import "./home.css";
 
 export default function Home() {
-  // --- State variables ---
   const [items, setItems] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -14,91 +12,194 @@ export default function Home() {
   const [itemToDelete, setItemToDelete] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
-  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false); // for upgrade modal
-  const [userTier, setUserTier] = useState('free'); // user's tier
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+
+  const [profile, setProfile] = useState(null);
+  const [timeLeft, setTimeLeft] = useState('');
 
   const navigate = useNavigate();
 
-  // --- Fetch items and tier on mount ---
   useEffect(() => {
     fetchItems(setItems, setLoading);
-    fetchTier();
+    fetchProfile();
   }, []);
 
-  const fetchTier = async () => {
+  // =========================
+  // FETCH PROFILE
+  // =========================
+  const fetchProfile = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
     const { data } = await supabase
       .from('profiles')
-      .select('tier')
+      .select('*')
       .eq('user_id', user.id)
       .single();
 
-    if (data) setUserTier(data.tier);
+    setProfile(data);
   };
 
-  // --- Add item with free tier limit check ---
+  // =========================
+  // COUNTDOWN TIMER
+  // =========================
+  useEffect(() => {
+    if (!profile?.current_period_end || !profile?.cancel_at_period_end) return;
+
+    const interval = setInterval(() => {
+      const end = new Date(profile.current_period_end).getTime();
+      const now = Date.now();
+      const diff = end - now;
+
+      if (diff <= 0) {
+        setTimeLeft("Expired");
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((diff / (1000 * 60)) % 60);
+
+      setTimeLeft(`${days}d ${hours}h ${minutes}m left`);
+    }, 1000 * 60); // updates every minute (efficient)
+
+    return () => clearInterval(interval);
+  }, [profile]);
+
+  // =========================
+  // UPGRADE
+  // =========================
+  const upgradeToPro = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      alert("You must be logged in");
+      return;
+    }
+
+    const res = await fetch(
+      "https://omigxszvhmgeorbupspa.supabase.co/functions/v1/create-checkout",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id }),
+      }
+    );
+
+    const data = await res.json();
+
+    if (data.url) {
+      window.location.href = data.url;
+    }
+  };
+
+  // =========================
+  // CANCEL SUBSCRIPTION
+  // =========================
+  const handleCancelSubscription = async () => {
+    const { data } = await supabase.auth.getSession();
+
+    if (!data?.session) return;
+
+    const res = await fetch(
+      "https://omigxszvhmgeorbupspa.supabase.co/functions/v1/cancel-subscription",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${data.session.access_token}`,
+        },
+      }
+    );
+
+    const result = await res.json();
+
+    if (result.success) {
+      alert("Subscription will cancel at period end.");
+      fetchProfile();
+    }
+  };
+
+  const openDelete = (item) => {
+    setItemToDelete(item);
+    setDeleteModalOpen(true);
+  };
+
+  const filteredItems = items.filter(item =>
+    item.task.toLowerCase().startsWith(searchTerm.toLowerCase())
+  );
+
+  // =========================
+  // SUBSCRIPTION UI
+  // =========================
+  const renderSubscriptionButton = () => {
+    if (!profile) return null;
+
+    const isPro = profile.tier === "pro";
+    const isCancelled = profile.cancel_at_period_end;
+    const endDate = profile.current_period_end
+      ? new Date(profile.current_period_end)
+      : null;
+
+    if (!isPro) {
+      return (
+        <button
+          onClick={() => setUpgradeModalOpen(true)}
+          style={{ marginTop: '20px', backgroundColor: '#f0ad4e', color: 'white' }}
+        >
+          Upgrade to Pro
+        </button>
+      );
+    }
+
+    if (isPro && isCancelled) {
+      return (
+        <div style={{ marginTop: '20px', color: '#ccc', fontSize: 13 }}>
+          <div>
+            Pro until {endDate ? endDate.toLocaleDateString() : "unknown date"}
+          </div>
+
+          <div style={{ marginTop: 5, color: "#aaa" }}>
+            {timeLeft}
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <button
+        onClick={handleCancelSubscription}
+        style={{ marginTop: '20px', backgroundColor: '#d9534f', color: 'white' }}
+      >
+        Cancel Subscription
+      </button>
+    );
+  };
+
   const handleAddItem = () => {
-    if (userTier === 'free' && items.length >= 3) {
+    if (profile?.tier === 'free' && items.length >= 3) {
       alert('Free tier limit reached. Upgrade to Pro for more lists.');
       return;
     }
     setModalOpen(true);
   };
 
-  // --- Upgrade tier ---
-  const upgradeToPro = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { error } = await supabase
-      .from('profiles')
-      .update({ tier: 'pro' })
-      .eq('user_id', user.id);
-
-    if (!error) {
-      setUserTier('pro');
-      setUpgradeModalOpen(false);
-      alert('🎉 Successfully upgraded to Pro!');
-    } else {
-      alert('❌ Upgrade failed. Try again.');
-    }
-  };
-
-  // --- Open delete modal ---
-  const openDelete = (item) => {
-    setItemToDelete(item);
-    setDeleteModalOpen(true);
-  };
-
-  // --- Filtered items ---
-  const filteredItems = items.filter(item =>
-    item.task.toLowerCase().startsWith(searchTerm.toLowerCase())
-  );
-
   return (
     <div className="app-container">
-      {/* Sidebar */}
+
       <div className="sidebar">
         <button onClick={() => navigate('/calendar')}>Calendar</button>
-        {userTier === 'free' && (
-          <button
-            onClick={() => setUpgradeModalOpen(true)}
-            style={{ marginTop: '20px', backgroundColor: '#f0ad4e', color: 'white' }}
-          >
-            Upgrade to Pro
-          </button>
-        )}
+
+        {renderSubscriptionButton()}
       </div>
 
-      {/* Main content */}
       <div className="content-wrapper">
         <div className="vertical-line"></div>
+
         <div className="main-content">
-          {/* Top bar */}
           <div className="top-bar">
             <button className="plus-button" onClick={handleAddItem}>+</button>
+
             <input
               type="text"
               placeholder="Search..."
@@ -110,7 +211,6 @@ export default function Home() {
 
           <div className="horizontal-line"></div>
 
-          {/* Items container */}
           <div className="items-container">
             {loading ? (
               <p style={{ padding: '20px', color: '#666' }}>Loading...</p>
@@ -132,7 +232,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Add Item Modal */}
+      {/* MODALS unchanged */}
       {modalOpen && (
         <div className="modal-overlay" onClick={() => setModalOpen(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
@@ -145,11 +245,8 @@ export default function Home() {
               className="modal-input"
             />
             <div className="modal-buttons">
-              <button className="modal-close" onClick={() => setModalOpen(false)}>Close</button>
-              <button
-                className="modal-add"
-                onClick={() => addItem(modalText, items, setItems, setModalText, setModalOpen)}
-              >
+              <button onClick={() => setModalOpen(false)}>Close</button>
+              <button onClick={() => addItem(modalText, items, setItems, setModalText, setModalOpen)}>
                 Add
               </button>
             </div>
@@ -157,48 +254,31 @@ export default function Home() {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
       {deleteModalOpen && (
         <div className="modal-overlay" onClick={() => setDeleteModalOpen(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <h2>Delete Listing</h2>
-            <p>Are you sure you want to delete this item?</p>
-            <div className="modal-buttons">
-              <button className="modal-close" onClick={() => setDeleteModalOpen(false)}>Cancel</button>
-              <button
-                className="modal-add"
-                style={{ backgroundColor: '#d9534f' }}
-                onClick={() =>
-  deleteListing(
-    itemToDelete,
-    items,
-    setItems,
-    setDeleteModalOpen,
-    setItemToDelete
-  )
-}
-              >
-                Delete
-              </button>
-            </div>
+            <p>Are you sure?</p>
+            <button onClick={() => setDeleteModalOpen(false)}>Cancel</button>
+            <button onClick={() =>
+              deleteListing(itemToDelete, items, setItems, setDeleteModalOpen, setItemToDelete)
+            }>
+              Delete
+            </button>
           </div>
         </div>
       )}
 
-      {/* Upgrade Modal */}
       {upgradeModalOpen && (
         <div className="modal-overlay" onClick={() => setUpgradeModalOpen(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <h2>Upgrade to Pro</h2>
             <p>Upgrade to Pro and enjoy unlimited lists!</p>
-            <div className="modal-buttons">
-              <button className="modal-close" onClick={() => setUpgradeModalOpen(false)}>Cancel</button>
-              <button className="modal-add" onClick={upgradeToPro}>Upgrade</button>
-            </div>
+            <button onClick={() => setUpgradeModalOpen(false)}>Cancel</button>
+            <button onClick={upgradeToPro}>Upgrade</button>
           </div>
         </div>
       )}
-
     </div>
   );
 }
