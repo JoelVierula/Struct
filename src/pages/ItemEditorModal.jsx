@@ -22,7 +22,7 @@ export default function ItemEditorModal({
   const [categoryValues, setCategoryValues] = useState({});
   const [categories, setCategories] = useState([]);
   const [newCategoryTitle, setNewCategoryTitle] = useState("");
-  const [locks, setLocks] = useState({}); // lock state per category
+  const [locks, setLocks] = useState({});
 
   // ---------------- LOAD CATEGORIES ----------------
   const loadCategories = useCallback(async () => {
@@ -36,23 +36,37 @@ export default function ItemEditorModal({
 
       const newValues = {};
       const newLocks = {};
+
       cats.forEach(cat => {
-        const val = activeItem?.item_values?.find(iv => iv.category_id === cat.id)?.value || "";
+        const val =
+          activeItem?.item_values?.find(iv => iv.category_id === cat.id)?.value || "";
+
         newValues[cat.id] = val;
-        newLocks[cat.id] = true; // start locked
+        newLocks[cat.id] = true;
       });
 
-      setCategoryValues(prev => ({ ...newValues, ...prev }));
-      setLocks(prev => ({ ...newLocks, ...prev }));
+      // ✅ CLEAN RESET (no merging with old state)
+      setCategoryValues(newValues);
+      setLocks(newLocks);
+
     } catch (err) {
       console.error("Failed to load categories:", err);
     }
   }, [mode, activeItem, listingId]);
 
+  // ---------------- INIT / RESET ----------------
   useEffect(() => {
-    setItemTitle(activeItem?.title || "");
+    if (mode === "create") {
+      // ✅ FULL RESET for new item
+      setItemTitle("");
+      setCategoryValues({});
+      setLocks({});
+    } else {
+      setItemTitle(activeItem?.title || "");
+    }
+
     loadCategories();
-  }, [activeItem, loadCategories]);
+  }, [mode, activeItem, loadCategories]);
 
   // ---------------- DELETE CATEGORY ----------------
   const handleDeleteCategory = async (cat) => {
@@ -107,20 +121,16 @@ export default function ItemEditorModal({
       const valObj = activeItem?.item_values?.find(iv => iv.category_id === catId);
 
       if (valObj) {
-        // Existing value → update
         await updateValueAPI(valObj.id, newValue);
       } else if (mode === "edit" && activeItem) {
-        // New value for local category → insert
-        const { data: inserted, error } = await supabase
+        const { error } = await supabase
           .from('item_values')
           .insert([{
             id: uuidv4(),
             item_id: activeItem.id,
             category_id: catId,
             value: newValue
-          }])
-          .select()
-          .single();
+          }]);
 
         if (error) {
           console.error("Failed to insert new value:", error);
@@ -128,13 +138,11 @@ export default function ItemEditorModal({
         }
       }
 
-      // 🔑 Update local state immediately
       setCategoryValues(prev => ({
         ...prev,
         [catId]: newValue
       }));
 
-      // Refresh parent so list updates
       onRefresh();
 
     } catch (err) {
@@ -172,7 +180,6 @@ export default function ItemEditorModal({
       return;
     }
 
-    // Do NOT create empty item_value yet
     setCategories(prev => [...prev, newCat]);
     setLocks(prev => ({ ...prev, [newCat.id]: true }));
     setNewCategoryTitle("");
@@ -218,7 +225,7 @@ export default function ItemEditorModal({
                 <label>{cat.title}</label>
                 <input
                   type={isTime ? "datetime-local" : "text"}
-                  value={val} // 🔑 always from state
+                  value={val}
                   className="input"
                   readOnly={locked}
                   onChange={(e) =>
@@ -229,12 +236,10 @@ export default function ItemEditorModal({
                   }
                 />
 
-                {/* Lock/Unlock Button */}
                 <button
                   className="btn-lock"
                   onClick={async () => {
                     if (!locked) {
-                      // Locking → save value
                       await handleUpdateField(cat.id, categoryValues[cat.id] || "");
                     }
                     setLocks(prev => ({ ...prev, [cat.id]: !prev[cat.id] }));
