@@ -7,7 +7,6 @@ import {
 } from "./supabaseService";
 
 import { supabase } from "../supabaseClient";
-import { createEvent } from "./CalendarService.js";
 import "./ItemManager.css";
 import { v4 as uuidv4 } from "uuid";
 
@@ -70,7 +69,7 @@ export default function ItemEditorModal({
     loadCategories();
   }, [mode, activeItem, loadCategories]);
 
-  // ---------------- TRACK CHANGES ----------------
+  // ---------------- TRACK INPUT ----------------
   const handleChange = (catId, value) => {
     setCategoryValues((prev) => ({
       ...prev,
@@ -110,23 +109,35 @@ export default function ItemEditorModal({
     }
   };
 
-  // ---------------- SAVE EDITS ----------------
+  // ---------------- SAVE EDITS (FIXED DELETE LOGIC) ----------------
   const handleSaveChanges = async () => {
     try {
       const updates = Object.keys(dirtyValues);
 
       for (const catId of updates) {
         const value = categoryValues[catId];
-
-        if (!value?.trim()) continue;
-
         const existing = activeItem?.item_values?.find(
           (iv) => iv.category_id === catId
         );
 
+        // 🔴 EMPTY VALUE → DELETE FROM DB
+        if (!value || !value.trim()) {
+          if (existing) {
+            await supabase
+              .from("item_values")
+              .delete()
+              .eq("id", existing.id);
+          }
+          continue;
+        }
+
+        // 🟢 UPDATE EXISTING VALUE
         if (existing) {
           await updateValueAPI(existing.id, value);
-        } else {
+        }
+
+        // 🟢 INSERT NEW VALUE
+        else {
           await supabase.from("item_values").insert([
             {
               id: uuidv4(),
@@ -141,6 +152,7 @@ export default function ItemEditorModal({
       setDirtyValues({});
       onRefresh();
       onClose();
+
     } catch (err) {
       console.error("Failed to save changes:", err);
     }
@@ -206,7 +218,7 @@ export default function ItemEditorModal({
 
         <hr />
 
-        {/* CATEGORIES */}
+        {/* CATEGORY FIELDS */}
         <div className="category-inputs">
           {categories.map((cat) => {
             const locked = locks[cat.id];
@@ -238,7 +250,7 @@ export default function ItemEditorModal({
                   {locked ? "🔒" : "🔓"}
                 </button>
 
-                {/* DELETE */}
+                {/* DELETE CATEGORY */}
                 {mode === "edit" && !cat.is_global && (
                   <button
                     className="btn-delete"
