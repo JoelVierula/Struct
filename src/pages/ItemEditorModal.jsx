@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { 
-  createItem as createItemAPI, 
-  addCategory as addCategoryAPI,
+import {
+  createItem as createItemAPI,
   updateValue as updateValueAPI,
   fetchCategories,
   deleteCategory as deleteCategoryAPI
 } from "./supabaseService";
-import { supabase } from '../supabaseClient'; 
-import { createEvent } from './CalendarService.js'; 
-import './ItemManager.css';
+
+import { supabase } from "../supabaseClient";
+import { createEvent } from "./CalendarService.js";
+import "./ItemManager.css";
 import { v4 as uuidv4 } from "uuid";
 
 export default function ItemEditorModal({
@@ -19,10 +19,11 @@ export default function ItemEditorModal({
   onRefresh
 }) {
   const [itemTitle, setItemTitle] = useState("");
-  const [categoryValues, setCategoryValues] = useState({});
   const [categories, setCategories] = useState([]);
-  const [newCategoryTitle, setNewCategoryTitle] = useState("");
+  const [categoryValues, setCategoryValues] = useState({});
   const [locks, setLocks] = useState({});
+  const [dirtyValues, setDirtyValues] = useState({});
+  const [newCategoryTitle, setNewCategoryTitle] = useState("");
 
   // ---------------- LOAD CATEGORIES ----------------
   const loadCategories = useCallback(async () => {
@@ -34,33 +35,34 @@ export default function ItemEditorModal({
 
       setCategories(cats);
 
-      const newValues = {};
-      const newLocks = {};
+      const values = {};
+      const lockState = {};
 
-      cats.forEach(cat => {
-        const val =
-          activeItem?.item_values?.find(iv => iv.category_id === cat.id)?.value || "";
+      cats.forEach((cat) => {
+        const existingValue =
+          activeItem?.item_values?.find(
+            (iv) => iv.category_id === cat.id
+          )?.value || "";
 
-        newValues[cat.id] = val;
-        newLocks[cat.id] = true;
+        values[cat.id] = existingValue;
+        lockState[cat.id] = true;
       });
 
-      // ✅ CLEAN RESET (no merging with old state)
-      setCategoryValues(newValues);
-      setLocks(newLocks);
-
+      setCategoryValues(values);
+      setLocks(lockState);
+      setDirtyValues({});
     } catch (err) {
       console.error("Failed to load categories:", err);
     }
   }, [mode, activeItem, listingId]);
 
-  // ---------------- INIT / RESET ----------------
+  // ---------------- INIT ----------------
   useEffect(() => {
     if (mode === "create") {
-      // ✅ FULL RESET for new item
       setItemTitle("");
       setCategoryValues({});
       setLocks({});
+      setDirtyValues({});
     } else {
       setItemTitle(activeItem?.title || "");
     }
@@ -68,127 +70,116 @@ export default function ItemEditorModal({
     loadCategories();
   }, [mode, activeItem, loadCategories]);
 
-  // ---------------- DELETE CATEGORY ----------------
-  const handleDeleteCategory = async (cat) => {
-    if (!window.confirm("Delete this category and all its data?")) return;
-    try {
-      await deleteCategoryAPI(cat.id);
-      await loadCategories();
-      onRefresh();
-    } catch (err) {
-      console.error("Failed to delete category:", err);
-    }
+  // ---------------- TRACK CHANGES ----------------
+  const handleChange = (catId, value) => {
+    setCategoryValues((prev) => ({
+      ...prev,
+      [catId]: value
+    }));
+
+    setDirtyValues((prev) => ({
+      ...prev,
+      [catId]: true
+    }));
   };
 
-  // ---------------- SAVE ITEM ----------------
-  const handleSave = async () => {
+  // ---------------- CREATE ITEM ----------------
+  const handleCreateItem = async () => {
     if (!itemTitle.trim()) return;
 
-    if (mode === "create") {
+    try {
       const valuesToSave = {};
-      categories.forEach(cat => {
+
+      categories.forEach((cat) => {
         if (categoryValues[cat.id]?.trim()) {
           valuesToSave[cat.id] = categoryValues[cat.id];
         }
       });
 
-      await createItemAPI(itemTitle, categories, listingId, valuesToSave);
-
-      const timeCat = categories.find(c => c.title.toLowerCase() === "time");
-      if (timeCat && categoryValues[timeCat.id]) {
-        const [datePart, timePart] = categoryValues[timeCat.id].split('T');
-        if (datePart && timePart) {
-          const [hour, minute] = timePart.split(':').map(Number);
-          await createEvent({
-            title: `Item: ${itemTitle}`,
-            date: datePart,
-            hour,
-            minute
-          });
-        }
-      }
-    }
-
-    onRefresh();
-    onClose();
-  };
-
-  // ---------------- UPDATE VALUE ----------------
-  const handleUpdateField = async (catId, newValue) => {
-    if (!newValue.trim()) return;
-
-    try {
-      const valObj = activeItem?.item_values?.find(iv => iv.category_id === catId);
-
-      if (valObj) {
-        await updateValueAPI(valObj.id, newValue);
-      } else if (mode === "edit" && activeItem) {
-        const { error } = await supabase
-          .from('item_values')
-          .insert([{
-            id: uuidv4(),
-            item_id: activeItem.id,
-            category_id: catId,
-            value: newValue
-          }]);
-
-        if (error) {
-          console.error("Failed to insert new value:", error);
-          return;
-        }
-      }
-
-      setCategoryValues(prev => ({
-        ...prev,
-        [catId]: newValue
-      }));
+      await createItemAPI(
+        itemTitle,
+        categories,
+        listingId,
+        valuesToSave
+      );
 
       onRefresh();
-
+      onClose();
     } catch (err) {
-      console.error("Failed to update value:", err);
+      console.error("Failed to create item:", err);
+    }
+  };
+
+  // ---------------- SAVE EDITS ----------------
+  const handleSaveChanges = async () => {
+    try {
+      const updates = Object.keys(dirtyValues);
+
+      for (const catId of updates) {
+        const value = categoryValues[catId];
+
+        if (!value?.trim()) continue;
+
+        const existing = activeItem?.item_values?.find(
+          (iv) => iv.category_id === catId
+        );
+
+        if (existing) {
+          await updateValueAPI(existing.id, value);
+        } else {
+          await supabase.from("item_values").insert([
+            {
+              id: uuidv4(),
+              item_id: activeItem.id,
+              category_id: catId,
+              value
+            }
+          ]);
+        }
+      }
+
+      setDirtyValues({});
+      onRefresh();
+      onClose();
+    } catch (err) {
+      console.error("Failed to save changes:", err);
+    }
+  };
+
+  // ---------------- DELETE CATEGORY ----------------
+  const handleDeleteCategory = async (cat) => {
+    if (!window.confirm("Delete category?")) return;
+
+    try {
+      await deleteCategoryAPI(cat.id);
+      await loadCategories();
+      onRefresh();
+    } catch (err) {
+      console.error(err);
     }
   };
 
   // ---------------- ADD CATEGORY ----------------
-  const addGlobalCategory = async () => {
+  const addCategory = async () => {
     if (!newCategoryTitle.trim()) return;
 
-    const newCat = await addCategoryAPI(newCategoryTitle, [], listingId, true);
-    setCategories(prev => [...prev, newCat]);
-    setLocks(prev => ({ ...prev, [newCat.id]: true }));
-    setNewCategoryTitle("");
-    onRefresh();
-  };
-
-  const addLocalCategory = async () => {
-    if (!newCategoryTitle.trim() || !activeItem?.listing_uuid) return;
-
-    const { data: newCat, error } = await supabase
-      .from('categories')
+    const { data, error } = await supabase
+      .from("categories")
       .insert({
         id: uuidv4(),
         title: newCategoryTitle,
-        listing_uuid: activeItem.listing_uuid,
-        is_global: false
+        listing_uuid: listingId,
+        is_global: mode === "create"
       })
       .select()
       .single();
 
-    if (error) {
-      console.error("Failed to add local category:", error);
-      return;
-    }
+    if (error) return console.error(error);
 
-    setCategories(prev => [...prev, newCat]);
-    setLocks(prev => ({ ...prev, [newCat.id]: true }));
+    setCategories((prev) => [...prev, data]);
+    setLocks((prev) => ({ ...prev, [data.id]: true }));
     setNewCategoryTitle("");
     onRefresh();
-  };
-
-  const handleAddCategory = async () => {
-    if (mode === "create") await addGlobalCategory();
-    else await addLocalCategory();
   };
 
   if (!mode) return null;
@@ -196,9 +187,14 @@ export default function ItemEditorModal({
   return (
     <div className="modal-overlay">
       <div className="modal">
-        <h2>{mode === 'create' ? "Add New Item" : `Editing: ${activeItem?.title}`}</h2>
 
-        {/* Item Name */}
+        <h2>
+          {mode === "create"
+            ? "Add New Item"
+            : `Editing: ${activeItem?.title}`}
+        </h2>
+
+        {/* ITEM TITLE */}
         <div className="category-input-row">
           <label>Item Name</label>
           <input
@@ -210,45 +206,40 @@ export default function ItemEditorModal({
 
         <hr />
 
-        {/* Categories */}
+        {/* CATEGORIES */}
         <div className="category-inputs">
-          {categories.map(cat => {
-            const isTime = cat.title.toLowerCase() === "time";
-            const val = categoryValues[cat.id] || "";
+          {categories.map((cat) => {
             const locked = locks[cat.id];
-
-            const canDelete = (mode === "edit" && !cat.is_global) ||
-                              (mode === "create" && cat.is_global);
 
             return (
               <div key={cat.id} className="category-input-row">
                 <label>{cat.title}</label>
+
                 <input
-                  type={isTime ? "datetime-local" : "text"}
-                  value={val}
-                  className="input"
+                  type="text"
+                  value={categoryValues[cat.id] || ""}
                   readOnly={locked}
+                  className="input"
                   onChange={(e) =>
-                    setCategoryValues(prev => ({
-                      ...prev,
-                      [cat.id]: e.target.value
-                    }))
+                    handleChange(cat.id, e.target.value)
                   }
                 />
 
+                {/* LOCK */}
                 <button
                   className="btn-lock"
-                  onClick={async () => {
-                    if (!locked) {
-                      await handleUpdateField(cat.id, categoryValues[cat.id] || "");
-                    }
-                    setLocks(prev => ({ ...prev, [cat.id]: !prev[cat.id] }));
-                  }}
+                  onClick={() =>
+                    setLocks((prev) => ({
+                      ...prev,
+                      [cat.id]: !prev[cat.id]
+                    }))
+                  }
                 >
                   {locked ? "🔒" : "🔓"}
                 </button>
 
-                {canDelete && (
+                {/* DELETE */}
+                {mode === "edit" && !cat.is_global && (
                   <button
                     className="btn-delete"
                     onClick={() => handleDeleteCategory(cat)}
@@ -261,26 +252,38 @@ export default function ItemEditorModal({
           })}
         </div>
 
-        {/* Add New Category */}
-        <div className="category-management-section">
-          <h3>{mode === 'edit' ? "Add Specific Detail" : "Manage Global Template"}</h3>
-          <div className="add-category-row">
-            <input
-              value={newCategoryTitle}
-              onChange={(e) => setNewCategoryTitle(e.target.value)}
-              className="input"
-            />
-            <button onClick={handleAddCategory} className="btn">Add</button>
-          </div>
+        {/* ADD CATEGORY */}
+        <div className="add-category-row">
+          <input
+            value={newCategoryTitle}
+            onChange={(e) => setNewCategoryTitle(e.target.value)}
+            className="input"
+            placeholder="New category"
+          />
+          <button className="btn" onClick={addCategory}>
+            Add
+          </button>
         </div>
 
-        {/* Modal Actions */}
+        {/* ACTIONS */}
         <div className="modal-actions">
-          <button className="btn" onClick={onClose}>Close</button>
-          {mode === 'create' && (
-            <button className="btn-primary" onClick={handleSave}>Create Item</button>
+          <button className="btn" onClick={onClose}>
+            Close
+          </button>
+
+          {mode === "create" && (
+            <button className="btn-primary" onClick={handleCreateItem}>
+              Create Item
+            </button>
+          )}
+
+          {mode === "edit" && (
+            <button className="btn-primary" onClick={handleSaveChanges}>
+              Save Changes
+            </button>
           )}
         </div>
+
       </div>
     </div>
   );
