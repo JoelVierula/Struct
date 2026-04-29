@@ -9,30 +9,26 @@ import {
 } from "./supabaseService";
 
 import './ItemManager.css';
-import ItemEditorModal from "./ItemEditorModal"; // Renamed for clarity
+import ItemEditorModal from "./ItemEditorModal";
 
 export default function ItemManager() {
   const { id: listingId } = useParams();
 
-  // --- Collection State ---
   const [items, setItems] = useState([]);
   const [categories, setCategories] = useState([]);
   const [tier, setTier] = useState('free');
 
-  // --- UI & Filter State ---
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilters, setCategoryFilters] = useState({});
   const [categoryDropdowns, setCategoryDropdowns] = useState({});
   const [selectedItems, setSelectedItems] = useState({});
   
-  // --- Modal Control State ---
-  const [modalMode, setModalMode] = useState(null); // 'create', 'edit', or null
+  const [modalMode, setModalMode] = useState(null);
   const [activeItem, setActiveItem] = useState(null);
   const [openSearchModal, setOpenSearchModal] = useState(false);
   const [openConfirmDelete, setOpenConfirmDelete] = useState(false);
   const [deleteConfig, setDeleteConfig] = useState({ mode: null, id: null });
 
-  // --- Data Orchestration ---
   const loadData = useCallback(async () => {
     const [cats, its] = await Promise.all([
       fetchCategories(listingId),
@@ -42,7 +38,6 @@ export default function ItemManager() {
     setCategories(cats);
     setItems(its);
     
-    // Build unique dropdown values for filters
     const dropdowns = {};
     cats.forEach(cat => {
       const uniqueVals = new Set(
@@ -68,7 +63,6 @@ export default function ItemManager() {
     loadData();
   }, [loadData]);
 
-  // --- Filter Logic ---
   const filteredItems = items.filter(item => {
     const matchesSearch = item.title?.toLowerCase().startsWith(searchQuery.toLowerCase());
     const matchesCategories = Object.entries(categoryFilters).every(([catId, val]) => {
@@ -79,7 +73,6 @@ export default function ItemManager() {
     return matchesSearch && matchesCategories;
   });
 
-  // --- Deletion Logic ---
   const confirmDelete = async () => {
     if (deleteConfig.mode === 'single') {
       await deleteItemAPI(deleteConfig.id);
@@ -99,6 +92,7 @@ export default function ItemManager() {
 
   return (
     <div className="manager-container">
+
       {/* Search & Top Controls */}
       <div className="top-controls">
         <button 
@@ -119,6 +113,11 @@ export default function ItemManager() {
         
         <button className="btn" onClick={() => setOpenSearchModal(true)}>Filter</button>
         <button className="btn-delete" onClick={() => triggerDelete()}>Delete Selected</button>
+
+        {/* ✅ ITEM COUNTER */}
+        <div className="item-count">
+          {filteredItems.length} / {items.length}
+        </div>
       </div>
 
       {/* Item List */}
@@ -138,7 +137,7 @@ export default function ItemManager() {
         ))}
       </div>
 
-      {/* The Unified Editor Modal */}
+      {/* Editor Modal */}
       <ItemEditorModal 
         mode={modalMode} 
         activeItem={activeItem}
@@ -148,7 +147,7 @@ export default function ItemManager() {
         onRefresh={loadData}
       />
 
-      {/* Search/Filter Modal */}
+      {/* Filter Modal */}
       {openSearchModal && (
         <div className="modal-overlay">
           <div className="modal">
@@ -186,6 +185,7 @@ export default function ItemManager() {
           </div>
         </div>
       )}
+
     </div>
   );
 }
