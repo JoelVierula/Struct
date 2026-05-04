@@ -10,6 +10,8 @@ import { supabase } from "../supabaseClient";
 import "./ItemManager.css";
 import { v4 as uuidv4 } from "uuid";
 
+import { CategoryField } from "./CategoryField";
+
 export default function ItemEditorModal({
   mode,
   activeItem,
@@ -18,6 +20,8 @@ export default function ItemEditorModal({
   onRefresh
 }) {
   const [itemTitle, setItemTitle] = useState("");
+  const [titleLocked, setTitleLocked] = useState(true);
+
   const [categories, setCategories] = useState([]);
   const [categoryValues, setCategoryValues] = useState({});
   const [locks, setLocks] = useState({});
@@ -59,11 +63,13 @@ export default function ItemEditorModal({
   useEffect(() => {
     if (mode === "create") {
       setItemTitle("");
+      setTitleLocked(false);
       setCategoryValues({});
       setLocks({});
       setDirtyValues({});
     } else {
       setItemTitle(activeItem?.title || "");
+      setTitleLocked(true);
     }
 
     loadCategories();
@@ -109,18 +115,25 @@ export default function ItemEditorModal({
     }
   };
 
-  // ---------------- SAVE EDITS (FIXED DELETE LOGIC) ----------------
+  // ---------------- SAVE EDITS ----------------
   const handleSaveChanges = async () => {
     try {
+      if (itemTitle.trim() && itemTitle !== activeItem.title) {
+        await supabase
+          .from("items")
+          .update({ title: itemTitle })
+          .eq("id", activeItem.id);
+      }
+
       const updates = Object.keys(dirtyValues);
 
       for (const catId of updates) {
         const value = categoryValues[catId];
+
         const existing = activeItem?.item_values?.find(
           (iv) => iv.category_id === catId
         );
 
-        // 🔴 EMPTY VALUE → DELETE FROM DB
         if (!value || !value.trim()) {
           if (existing) {
             await supabase
@@ -131,13 +144,9 @@ export default function ItemEditorModal({
           continue;
         }
 
-        // 🟢 UPDATE EXISTING VALUE
         if (existing) {
           await updateValueAPI(existing.id, value);
-        }
-
-        // 🟢 INSERT NEW VALUE
-        else {
+        } else {
           await supabase.from("item_values").insert([
             {
               id: uuidv4(),
@@ -160,12 +169,32 @@ export default function ItemEditorModal({
 
   // ---------------- DELETE CATEGORY ----------------
   const handleDeleteCategory = async (cat) => {
-    if (!window.confirm("Delete category?")) return;
+    const confirmDelete = window.confirm(
+      "Delete this category?\n\nThis will DELETE all items that contain this category."
+    );
+
+    if (!confirmDelete) return;
 
     try {
+      const { data: itemValues, error } = await supabase
+        .from("item_values")
+        .select("item_id")
+        .eq("category_id", cat.id);
+
+      if (error) throw error;
+
+      const itemIds = [...new Set(itemValues.map(v => v.item_id))];
+
+      if (itemIds.length > 0) {
+        const { deleteItems } = await import("./supabaseService");
+        await deleteItems(itemIds);
+      }
+
       await deleteCategoryAPI(cat.id);
+
       await loadCategories();
       onRefresh();
+
     } catch (err) {
       console.error(err);
     }
@@ -209,59 +238,45 @@ export default function ItemEditorModal({
         {/* ITEM TITLE */}
         <div className="category-input-row">
           <label>Item Name</label>
+
           <input
             value={itemTitle}
+            readOnly={titleLocked}
             onChange={(e) => setItemTitle(e.target.value)}
             className="input"
           />
+
+          {mode === "edit" && (
+            <button
+              className="btn-lock"
+              onClick={() => setTitleLocked(prev => !prev)}
+            >
+              {titleLocked ? "🔒" : "🔓"}
+            </button>
+          )}
         </div>
 
         <hr />
 
         {/* CATEGORY FIELDS */}
         <div className="category-inputs">
-          {categories.map((cat) => {
-            const locked = locks[cat.id];
-
-            return (
-              <div key={cat.id} className="category-input-row">
-                <label>{cat.title}</label>
-
-                <input
-                  type="text"
-                  value={categoryValues[cat.id] || ""}
-                  readOnly={locked}
-                  className="input"
-                  onChange={(e) =>
-                    handleChange(cat.id, e.target.value)
-                  }
-                />
-
-                {/* LOCK */}
-                <button
-                  className="btn-lock"
-                  onClick={() =>
-                    setLocks((prev) => ({
-                      ...prev,
-                      [cat.id]: !prev[cat.id]
-                    }))
-                  }
-                >
-                  {locked ? "🔒" : "🔓"}
-                </button>
-
-                {/* DELETE CATEGORY */}
-                {mode === "edit" && !cat.is_global && (
-                  <button
-                    className="btn-delete"
-                    onClick={() => handleDeleteCategory(cat)}
-                  >
-                    X
-                  </button>
-                )}
-              </div>
-            );
-          })}
+          {categories.map((cat) => (
+            <CategoryField
+              key={cat.id}
+              cat={cat}
+              mode={mode}
+              value={categoryValues[cat.id]}
+              locked={locks[cat.id]}
+              onChange={(val) => handleChange(cat.id, val)}
+              onToggleLock={() =>
+                setLocks((prev) => ({
+                  ...prev,
+                  [cat.id]: !prev[cat.id]
+                }))
+              }
+              onRefresh={loadCategories}
+            />
+          ))}
         </div>
 
         {/* ADD CATEGORY */}
