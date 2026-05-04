@@ -13,7 +13,8 @@ export function CategoryField({
   locked,
   onChange,
   onToggleLock,
-  onRefresh
+  onRefresh,
+  onDelete
 }) {
   const [openTypeMenu, setOpenTypeMenu] = useState(false);
 
@@ -32,7 +33,6 @@ export function CategoryField({
     onRefresh?.();
   };
 
-  // only allow editing in create mode OR non-global in edit mode
   const canEditType = mode === "create" || !cat.is_global;
 
   const renderInput = () => {
@@ -67,6 +67,13 @@ export function CategoryField({
         <label>
           {cat.title} {cat.type === "date" && "📅"}
         </label>
+
+        {/* DELETE BUTTON — create mode for all, edit mode for local only */}
+        {(mode === "create" || (mode === "edit" && !cat.is_global)) && (
+          <button className="btn-delete" onClick={onDelete}>
+            🗑
+          </button>
+        )}
 
         {/* ONLY SHOW ARROW IF EDITABLE */}
         {canEditType && (

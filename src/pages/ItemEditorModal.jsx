@@ -170,28 +170,37 @@ export default function ItemEditorModal({
   // ---------------- DELETE CATEGORY ----------------
   const handleDeleteCategory = async (cat) => {
     const confirmDelete = window.confirm(
-      "Delete this category?\n\nThis will DELETE all items that contain this category."
+      cat.is_global
+        ? "Delete this category?\n\nThis will DELETE all items that contain this category."
+        : "Delete this local category?\n\nThis will remove it from this item."
     );
 
     if (!confirmDelete) return;
 
     try {
-      const { data: itemValues, error } = await supabase
-        .from("item_values")
-        .select("item_id")
-        .eq("category_id", cat.id);
+      if (cat.is_global) {
+        const { data: itemValues, error } = await supabase
+          .from("item_values")
+          .select("item_id")
+          .eq("category_id", cat.id);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      const itemIds = [...new Set(itemValues.map(v => v.item_id))];
+        const itemIds = [...new Set(itemValues.map(v => v.item_id))];
 
-      if (itemIds.length > 0) {
-        const { deleteItems } = await import("./supabaseService");
-        await deleteItems(itemIds);
+        if (itemIds.length > 0) {
+          const { deleteItems } = await import("./supabaseService");
+          await deleteItems(itemIds);
+        }
+      } else {
+        // Local category — just delete item_values and the category itself
+        await supabase
+          .from("item_values")
+          .delete()
+          .eq("category_id", cat.id);
       }
 
       await deleteCategoryAPI(cat.id);
-
       await loadCategories();
       onRefresh();
 
@@ -217,8 +226,23 @@ export default function ItemEditorModal({
 
     if (error) return console.error(error);
 
+    // In edit mode, link the new local category to the item immediately
+    if (mode === "edit" && activeItem?.id) {
+      const { error: linkError } = await supabase
+        .from("item_values")
+        .insert({
+          id: uuidv4(),
+          item_id: activeItem.id,
+          category_id: data.id,
+          value: ""
+        });
+
+      if (linkError) console.error(linkError);
+    }
+
     setCategories((prev) => [...prev, data]);
-    setLocks((prev) => ({ ...prev, [data.id]: true }));
+    setCategoryValues((prev) => ({ ...prev, [data.id]: "" }));
+    setLocks((prev) => ({ ...prev, [data.id]: false }));
     setNewCategoryTitle("");
     onRefresh();
   };
@@ -275,6 +299,7 @@ export default function ItemEditorModal({
                 }))
               }
               onRefresh={loadCategories}
+              onDelete={() => handleDeleteCategory(cat)}
             />
           ))}
         </div>
