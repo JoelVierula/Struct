@@ -171,34 +171,19 @@ export default function ItemEditorModal({
   const handleDeleteCategory = async (cat) => {
     const confirmDelete = window.confirm(
       cat.is_global
-        ? "Delete this category?\n\nThis will DELETE all items that contain this category."
+        ? "Delete this category?\n\nThis will remove it and its values from all items."
         : "Delete this local category?\n\nThis will remove it from this item."
     );
 
     if (!confirmDelete) return;
 
     try {
-      if (cat.is_global) {
-        const { data: itemValues, error } = await supabase
-          .from("item_values")
-          .select("item_id")
-          .eq("category_id", cat.id);
-
-        if (error) throw error;
-
-        const itemIds = [...new Set(itemValues.map(v => v.item_id))];
-
-        if (itemIds.length > 0) {
-          const { deleteItems } = await import("./supabaseService");
-          await deleteItems(itemIds);
-        }
-      } else {
-        // Local category — just delete item_values and the category itself
-        await supabase
-          .from("item_values")
-          .delete()
-          .eq("category_id", cat.id);
-      }
+      // For both global and local: just delete all item_values for this category,
+      // then delete the category itself. Never delete the items.
+      await supabase
+        .from("item_values")
+        .delete()
+        .eq("category_id", cat.id);
 
       await deleteCategoryAPI(cat.id);
       await loadCategories();
