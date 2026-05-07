@@ -22,7 +22,6 @@ export function CategoryField({
   value,
   locked,
   onChange,
-  onToggleLock,
   onRefresh,
   onDelete
 }) {
@@ -144,11 +143,6 @@ export function CategoryField({
 
       {/* INPUT */}
       {renderInput()}
-
-      {/* LOCK */}
-      <button className="btn-lock" onClick={onToggleLock}>
-        {locked ? "🔒" : "🔓"}
-      </button>
 
     </div>
   );

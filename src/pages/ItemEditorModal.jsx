@@ -20,11 +20,10 @@ export default function ItemEditorModal({
   onRefresh
 }) {
   const [itemTitle, setItemTitle] = useState("");
-  const [titleLocked, setTitleLocked] = useState(true);
+  const [globalLocked, setGlobalLocked] = useState(true);
 
   const [categories, setCategories] = useState([]);
   const [categoryValues, setCategoryValues] = useState({});
-  const [locks, setLocks] = useState({});
   const [dirtyValues, setDirtyValues] = useState({});
   const [newCategoryTitle, setNewCategoryTitle] = useState("");
 
@@ -39,7 +38,6 @@ export default function ItemEditorModal({
       setCategories(cats);
 
       const values = {};
-      const lockState = {};
 
       cats.forEach((cat) => {
         const existingValue =
@@ -48,11 +46,9 @@ export default function ItemEditorModal({
           )?.value || "";
 
         values[cat.id] = existingValue;
-        lockState[cat.id] = true;
       });
 
       setCategoryValues(values);
-      setLocks(lockState);
       setDirtyValues({});
     } catch (err) {
       console.error("Failed to load categories:", err);
@@ -63,13 +59,12 @@ export default function ItemEditorModal({
   useEffect(() => {
     if (mode === "create") {
       setItemTitle("");
-      setTitleLocked(false);
+      setGlobalLocked(false);
       setCategoryValues({});
-      setLocks({});
       setDirtyValues({});
     } else {
       setItemTitle(activeItem?.title || "");
-      setTitleLocked(true);
+      setGlobalLocked(true);
     }
 
     loadCategories();
@@ -178,8 +173,6 @@ export default function ItemEditorModal({
     if (!confirmDelete) return;
 
     try {
-      // For both global and local: just delete all item_values for this category,
-      // then delete the category itself. Never delete the items.
       await supabase
         .from("item_values")
         .delete()
@@ -211,7 +204,6 @@ export default function ItemEditorModal({
 
     if (error) return console.error(error);
 
-    // In edit mode, link the new local category to the item immediately
     if (mode === "edit" && activeItem?.id) {
       const { error: linkError } = await supabase
         .from("item_values")
@@ -227,7 +219,6 @@ export default function ItemEditorModal({
 
     setCategories((prev) => [...prev, data]);
     setCategoryValues((prev) => ({ ...prev, [data.id]: "" }));
-    setLocks((prev) => ({ ...prev, [data.id]: false }));
     setNewCategoryTitle("");
     onRefresh();
   };
@@ -238,31 +229,30 @@ export default function ItemEditorModal({
     <div className="modal-overlay">
       <div className="modal">
 
-        <h2>
-          {mode === "create"
-            ? "Add New Item"
-            : `Editing: ${activeItem?.title}`}
-        </h2>
+        {/* HEADER with global lock */}
+        <div className="modal-header">
+          <h2>
+            {mode === "create"
+              ? "Add New Item"
+              : `Editing: ${activeItem?.title}`}
+          </h2>
+          <button
+            className="btn-lock"
+            onClick={() => setGlobalLocked(prev => !prev)}
+          >
+            {globalLocked ? "🔒" : "🔓"}
+          </button>
+        </div>
 
         {/* ITEM TITLE */}
         <div className="category-input-row">
           <label>Item Name</label>
-
           <input
             value={itemTitle}
-            readOnly={titleLocked}
+            readOnly={globalLocked}
             onChange={(e) => setItemTitle(e.target.value)}
             className="input"
           />
-
-          {mode === "edit" && (
-            <button
-              className="btn-lock"
-              onClick={() => setTitleLocked(prev => !prev)}
-            >
-              {titleLocked ? "🔒" : "🔓"}
-            </button>
-          )}
         </div>
 
         <hr />
@@ -275,14 +265,8 @@ export default function ItemEditorModal({
               cat={cat}
               mode={mode}
               value={categoryValues[cat.id]}
-              locked={locks[cat.id]}
+              locked={globalLocked}
               onChange={(val) => handleChange(cat.id, val)}
-              onToggleLock={() =>
-                setLocks((prev) => ({
-                  ...prev,
-                  [cat.id]: !prev[cat.id]
-                }))
-              }
               onRefresh={loadCategories}
               onDelete={() => handleDeleteCategory(cat)}
             />
