@@ -3,7 +3,17 @@ import { supabase } from "../supabaseClient";
 
 export const CATEGORY_TYPE_OPTIONS = [
   { label: "Own", value: "own" },
-  { label: "Date", value: "date" }
+  { label: "Date", value: "date" },
+  { label: "Lead", value: "lead" }
+];
+
+const LEAD_OPTIONS = [
+  "Connected",
+  "Rejected",
+  "Contact",
+  "Follow up 1",
+  "Follow up 2",
+  "Follow up 3"
 ];
 
 export function CategoryField({
@@ -17,6 +27,7 @@ export function CategoryField({
   onDelete
 }) {
   const [openTypeMenu, setOpenTypeMenu] = useState(false);
+  const [openLeadMenu, setOpenLeadMenu] = useState(false);
 
   const updateCategoryType = async (newType) => {
     const { error } = await supabase
@@ -48,6 +59,36 @@ export function CategoryField({
       );
     }
 
+    if (cat.type === "lead") {
+      return (
+        <div className="lead-selector">
+          <button
+            className="lead-choose-btn"
+            disabled={locked}
+            onClick={() => !locked && setOpenLeadMenu(prev => !prev)}
+          >
+            {value || "Choose"}
+          </button>
+          {openLeadMenu && !locked && (
+            <div className="lead-dropdown">
+              {LEAD_OPTIONS.map(opt => (
+                <div
+                  key={opt}
+                  className="lead-option"
+                  onClick={() => {
+                    onChange(opt);
+                    setOpenLeadMenu(false);
+                  }}
+                >
+                  {opt}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
     return (
       <input
         type="text"
@@ -65,7 +106,7 @@ export function CategoryField({
       {/* LABEL */}
       <div className="category-header">
         <label>
-          {cat.title} {cat.type === "date" && "📅"}
+          {cat.title} {cat.type === "date" && "📅"} {cat.type === "lead" && "🎯"}
         </label>
 
         {/* DELETE BUTTON — create mode for all, edit mode for local only */}

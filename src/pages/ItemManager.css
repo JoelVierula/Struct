@@ -37,7 +37,6 @@
   min-width: 150px;
 }
 
-/* Make buttons and input inline and vertically centered */
 .top-controls .btn,
 .top-controls .btn-delete {
   display: flex;
@@ -196,7 +195,8 @@
     padding: 15px;
   }
 }
-/* ----------------- CATEGORY FIELD (NEW COMPONENT) ----------------- */
+
+/* ----------------- CATEGORY FIELD ----------------- */
 
 .category-input-row {
   display: flex;
@@ -211,7 +211,6 @@
   color: #0D1F44;
 }
 
-/* header (title + dropdown) */
 .category-header {
   display: flex;
   align-items: center;
@@ -224,7 +223,6 @@
   margin: 0;
 }
 
-/* type dropdown button */
 .type-arrow {
   background: transparent;
   border: 1px solid #0D1F44;
@@ -235,7 +233,6 @@
   font-size: 0.8rem;
 }
 
-/* dropdown menu */
 .type-dropdown {
   position: absolute;
   background: white;
@@ -259,12 +256,10 @@
   color: white;
 }
 
-/* input matches existing style */
 .category-input-row .input {
   flex: 1;
 }
 
-/* lock button reuse existing style but tighten */
 .btn-lock {
   background: transparent;
   border: 1px solid #0D1F44;
@@ -277,5 +272,60 @@
 
 .btn-lock:hover {
   background: #0D1F44;
+  color: white;
+}
+
+/* ----------------- LEAD SELECTOR ----------------- */
+
+.lead-selector {
+  flex: 1;
+  position: relative;
+}
+
+.lead-choose-btn {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #0D1F44;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background-color: white;
+  color: #0D1F44;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.2s;
+}
+
+.lead-choose-btn:hover:not(:disabled) {
+  background-color: #f0f4ff;
+}
+
+.lead-choose-btn:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.lead-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 100%;
+  background: white;
+  border: 1px solid #0D1F44;
+  border-radius: 6px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.lead-option {
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: #0D1F44;
+}
+
+.lead-option:hover {
+  background-color: #1054E4;
   color: white;
 }
