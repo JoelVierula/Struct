@@ -47,7 +47,9 @@ export default function ItemManager() {
             .map(iv => String(iv.value).trim())
         )
       );
-      dropdowns[cat.id] = Array.from(uniqueVals);
+      dropdowns[cat.id] = Array.from(uniqueVals).sort((a, b) =>
+        a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })
+      );
     });
     setCategoryDropdowns(dropdowns);
   }, [listingId]);
