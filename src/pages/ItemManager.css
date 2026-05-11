@@ -6,7 +6,7 @@
   font-family: Arial, sans-serif;
   background-color: gray;
   color: #0D1F44;
-  min-height: 100vh;
+  height: 100vh;
 }
 
 /* ----------------- TOP CONTROLS ----------------- */
@@ -77,7 +77,7 @@
 /* ----------------- ITEM LIST ----------------- */
 .items-list {
   border-top: 2px solid #0D1F44;
-  max-height: 60vh;
+  flex: 1;
   overflow-y: auto;
   padding-top: 10px;
 }

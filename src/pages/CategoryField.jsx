@@ -105,7 +105,7 @@ export function CategoryField({
       {/* LABEL */}
       <div className="category-header">
         <label>
-          {cat.title} {cat.type === "date" && "📅"} {cat.type === "lead" && "🎯"}
+          {cat.title} {cat.type === "date"} {cat.type === "lead"}
         </label>
 
         {/* DELETE BUTTON — create mode for all, edit mode for local only */}
