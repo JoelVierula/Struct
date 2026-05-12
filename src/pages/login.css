@@ -126,3 +126,73 @@
 body{
   margin: 0px;
 }
+/* =========================
+   RESPONSIVE DESIGN
+========================= */
+
+/* TABLETS */
+@media (max-width: 768px) {
+  .header {
+    padding: 20px;
+  }
+
+  .logo {
+    height: 42px;
+  }
+
+  .btn {
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+
+  .modal {
+    width: 90%;
+    padding: 24px;
+  }
+}
+
+/* PHONES */
+@media (max-width: 480px) {
+  .header {
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+    text-align: center;
+  }
+
+  .header-buttons {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .header-buttons .btn {
+    width: 100%;
+  }
+
+  .modal {
+    width: 92%;
+    padding: 20px;
+    border-radius: 12px;
+  }
+
+  .modal h2 {
+    font-size: 22px;
+  }
+
+  .input {
+    font-size: 16px; /* prevents iPhone zoom on focus */
+    padding: 12px;
+  }
+
+  .btn-row {
+    flex-direction: column;
+  }
+
+  .btn-row .btn {
+    width: 100%;
+  }
+
+  .logo {
+    height: 38px;
+  }
+}

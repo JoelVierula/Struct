@@ -232,3 +232,124 @@
 body {
   margin: 0px;
 }
+/* =========================
+   TABLETS
+========================= */
+@media (max-width: 768px) {
+
+  .sidebar {
+    width: 160px;
+    padding: 20px 12px;
+  }
+
+  .main-content {
+    padding: 20px;
+  }
+
+  .vertical-line {
+    margin: 0 10px;
+  }
+
+  .search-input {
+    font-size: 16px;
+  }
+
+  .modal-content {
+    width: 90%;
+    padding: 24px;
+  }
+}
+
+
+/* =========================
+   PHONES
+========================= */
+@media (max-width: 480px) {
+
+  /* MAIN LAYOUT */
+  .app-container {
+    flex-direction: column;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 12px;
+    gap: 10px;
+    box-sizing: border-box;
+  }
+
+  .sidebar button {
+    flex: 1 1 140px;
+    max-width: 200px;
+  }
+
+  /* REMOVE VERTICAL LINE */
+  .vertical-line {
+    display: none;
+  }
+
+  /* CONTENT */
+  .main-content {
+    padding: 16px;
+  }
+
+  /* TOP BAR */
+  .top-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .search-input {
+    margin-left: 0;
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 16px;
+  }
+
+  .plus-button {
+    align-self: flex-start;
+  }
+
+  /* ITEM ROWS */
+  .item-row {
+    padding: 10px 12px;
+    gap: 10px;
+  }
+
+  .item {
+    word-break: break-word;
+  }
+
+  .delete-button {
+    flex-shrink: 0;
+  }
+
+  /* MODALS */
+  .modal-content {
+    width: 92%;
+    padding: 20px;
+    border-radius: 12px;
+  }
+
+  .modal-buttons {
+    flex-direction: column;
+  }
+
+  .modal-buttons button {
+    width: 100%;
+  }
+
+  /* TEXT */
+  .modal-content h2 {
+    font-size: 22px;
+  }
+
+  .modal-input {
+    font-size: 16px;
+  }
+}
