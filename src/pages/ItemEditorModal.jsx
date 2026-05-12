@@ -12,6 +12,51 @@ import { v4 as uuidv4 } from "uuid";
 
 import { CategoryField } from "./CategoryField";
 
+// ---------------- TEMPLATES ----------------
+const TEMPLATES = [
+  {
+    id: "roofing-customer-tracking",
+    label: "Roofing: Customer tracking",
+    categories: [
+      { title: "Name", type: "own" },
+      { title: "Contact info", type: "own" },
+      { title: "Address", type: "own" },
+      { title: "Notes", type: "own" }
+    ]
+  }
+];
+
+// ---------------- TEMPLATES MODAL ----------------
+function TemplatesModal({ onClose, onApply }) {
+  return (
+    <div className="modal-overlay">
+      <div className="modal">
+        <div className="modal-header">
+          <h2>Templates</h2>
+        </div>
+
+        <div className="templates-list">
+          {TEMPLATES.map((template) => (
+            <button
+              key={template.id}
+              className="btn"
+              onClick={() => onApply(template)}
+            >
+              {template.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="modal-actions">
+          <button className="btn" onClick={onClose}>
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ItemEditorModal({
   mode,
   activeItem,
@@ -26,6 +71,8 @@ export default function ItemEditorModal({
   const [categoryValues, setCategoryValues] = useState({});
   const [dirtyValues, setDirtyValues] = useState({});
   const [newCategoryTitle, setNewCategoryTitle] = useState("");
+
+  const [showTemplates, setShowTemplates] = useState(false);
 
   // ---------------- LOAD CATEGORIES ----------------
   const loadCategories = useCallback(async () => {
@@ -81,6 +128,38 @@ export default function ItemEditorModal({
       ...prev,
       [catId]: true
     }));
+  };
+
+  // ---------------- APPLY TEMPLATE ----------------
+  const handleApplyTemplate = async (template) => {
+    const existingTitles = categories.map((c) => c.title.toLowerCase());
+
+    for (const cat of template.categories) {
+      if (existingTitles.includes(cat.title.toLowerCase())) continue;
+
+      const { data, error } = await supabase
+        .from("categories")
+        .insert({
+          id: uuidv4(),
+          title: cat.title,
+          type: cat.type,
+          listing_uuid: listingId,
+          is_global: true
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error(error);
+        continue;
+      }
+
+      setCategories((prev) => [...prev, data]);
+      setCategoryValues((prev) => ({ ...prev, [data.id]: "" }));
+    }
+
+    setShowTemplates(false);
+    onRefresh();
   };
 
   // ---------------- CREATE ITEM ----------------
@@ -226,86 +305,100 @@ export default function ItemEditorModal({
   if (!mode) return null;
 
   return (
-    <div className="modal-overlay">
-      <div className="modal">
+    <>
+      <div className="modal-overlay">
+        <div className="modal">
 
-        {/* HEADER with global lock */}
-        <div className="modal-header">
-          <h2>
-            {mode === "create"
-              ? "Add New Item"
-              : `Editing: ${activeItem?.title}`}
-          </h2>
-          <button
-            className="btn-lock"
-            onClick={() => setGlobalLocked(prev => !prev)}
-          >
-            {globalLocked ? "🔒" : "🔓"}
-          </button>
-        </div>
+          {/* HEADER with global lock */}
+          <div className="modal-header">
+            <h2>
+              {mode === "create"
+                ? "Add New Item"
+                : `Editing: ${activeItem?.title}`}
+            </h2>
+            <button
+              className="btn-lock"
+              onClick={() => setGlobalLocked(prev => !prev)}
+            >
+              {globalLocked ? "🔒" : "🔓"}
+            </button>
+          </div>
 
-        {/* ITEM TITLE */}
-        <div className="category-input-row">
-          <label>Item Name</label>
-          <input
-            value={itemTitle}
-            readOnly={globalLocked}
-            onChange={(e) => setItemTitle(e.target.value)}
-            className="input"
-          />
-        </div>
-
-        <hr />
-
-        {/* CATEGORY FIELDS */}
-        <div className="category-inputs">
-          {categories.map((cat) => (
-            <CategoryField
-              key={cat.id}
-              cat={cat}
-              mode={mode}
-              value={categoryValues[cat.id]}
-              locked={globalLocked}
-              onChange={(val) => handleChange(cat.id, val)}
-              onRefresh={loadCategories}
-              onDelete={() => handleDeleteCategory(cat)}
+          {/* ITEM TITLE */}
+          <div className="category-input-row">
+            <label>Item Name</label>
+            <input
+              value={itemTitle}
+              readOnly={globalLocked}
+              onChange={(e) => setItemTitle(e.target.value)}
+              className="input"
             />
-          ))}
-        </div>
+          </div>
 
-        {/* ADD CATEGORY */}
-        <div className="add-category-row">
-          <input
-            value={newCategoryTitle}
-            onChange={(e) => setNewCategoryTitle(e.target.value)}
-            className="input"
-            placeholder="New category"
-          />
-          <button className="btn" onClick={addCategory}>
-            Add
-          </button>
-        </div>
+          <hr />
 
-        {/* ACTIONS */}
-        <div className="modal-actions">
-          <button className="btn" onClick={onClose}>
-            Close
-          </button>
+          {/* CATEGORY FIELDS */}
+          <div className="category-inputs">
+            {categories.map((cat) => (
+              <CategoryField
+                key={cat.id}
+                cat={cat}
+                mode={mode}
+                value={categoryValues[cat.id]}
+                locked={globalLocked}
+                onChange={(val) => handleChange(cat.id, val)}
+                onRefresh={loadCategories}
+                onDelete={() => handleDeleteCategory(cat)}
+              />
+            ))}
+          </div>
 
-          {mode === "create" && (
-            <button className="btn-primary" onClick={handleCreateItem}>
-              Create Item
+          {/* ADD CATEGORY */}
+          <div className="add-category-row">
+            <input
+              value={newCategoryTitle}
+              onChange={(e) => setNewCategoryTitle(e.target.value)}
+              className="input"
+              placeholder="New category"
+            />
+            <button className="btn" onClick={addCategory}>
+              Add
             </button>
-          )}
+          </div>
 
-          {mode === "edit" && (
-            <button className="btn-primary" onClick={handleSaveChanges}>
-              Save Changes
+          {/* ACTIONS */}
+          <div className="modal-actions">
+            <button className="btn" onClick={onClose}>
+              Close
             </button>
-          )}
-        </div>
 
+            <button className="btn" onClick={() => setShowTemplates(true)}>
+              Templates
+            </button>
+
+            {mode === "create" && (
+              <button className="btn-primary" onClick={handleCreateItem}>
+                Create Item
+              </button>
+            )}
+
+            {mode === "edit" && (
+              <button className="btn-primary" onClick={handleSaveChanges}>
+                Save Changes
+              </button>
+            )}
+          </div>
+
+        </div>
       </div>
-    </div>
+
+      {/* TEMPLATES MODAL */}
+      {showTemplates && (
+        <TemplatesModal
+          onClose={() => setShowTemplates(false)}
+          onApply={handleApplyTemplate}
+        />
+      )}
+    </>
   );
 }
