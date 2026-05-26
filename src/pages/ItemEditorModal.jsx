@@ -372,9 +372,11 @@ export default function ItemEditorModal({
               Close
             </button>
 
-            <button className="btn" onClick={() => setShowTemplates(true)}>
-              Templates
-            </button>
+            {mode === "create" && (
+              <button className="btn" onClick={() => setShowTemplates(true)}>
+                Templates
+              </button>
+            )}
 
             {mode === "create" && (
               <button className="btn-primary" onClick={handleCreateItem}>
