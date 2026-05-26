@@ -4,7 +4,7 @@
 
 /* PAGE CONTAINER */
 .calendar-page {
-  background-color: gray;
+  background-color: grey;
   color: #0D1F44;
   font-family: Arial, sans-serif;
   padding: 16px;
@@ -73,23 +73,23 @@
 .day-header {
   font-weight: bold;
   text-align: center;
-  background-color: gray;
+  background-color: grey;
 }
 
 .time-column {
   text-align: right;
   padding-right: 2px;
-  background-color: gray;
+  background-color: grey;
 }
 
 .hour-cell {
   height: 30px; /* compact height */
   position: relative;
-  background-color: gray;
+  background-color: white;
 }
 
 .hour-cell.today {
-  background-color: #1054E4; /* light blue highlight for today */
+  background-color: white; /* light blue highlight for today */
 }
 
 /* EVENT BOX */

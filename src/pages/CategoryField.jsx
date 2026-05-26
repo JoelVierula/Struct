@@ -4,6 +4,7 @@ import { supabase } from "../supabaseClient";
 export const CATEGORY_TYPE_OPTIONS = [
   { label: "Own", value: "own" },
   { label: "Date", value: "date" },
+  { label: "Schedule", value: "schedule" },
   { label: "Lead", value: "lead" }
 ];
 
@@ -50,6 +51,18 @@ export function CategoryField({
       return (
         <input
           type="date"
+          value={value || ""}
+          readOnly={locked}
+          onChange={(e) => onChange(e.target.value)}
+          className="input"
+        />
+      );
+    }
+
+    if (cat.type === "schedule") {
+      return (
+        <input
+          type="datetime-local"
           value={value || ""}
           readOnly={locked}
           onChange={(e) => onChange(e.target.value)}

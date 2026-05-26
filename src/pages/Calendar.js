@@ -3,11 +3,13 @@ import './Calendar.css';
 import {
   fetchEvents,
   createEvent,
-  deleteEvent
+  deleteEvent,
+  fetchScheduleItems
 } from './CalendarService.js';
 
 export default function Calendar() {
   const [events, setEvents] = useState([]);
+  const [scheduleItems, setScheduleItems] = useState([]);
   const [currentWeekStart, setCurrentWeekStart] = useState(getStartOfWeek(new Date()));
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -16,14 +18,21 @@ export default function Calendar() {
   const [eventTime, setEventTime] = useState('');
 
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [selectedScheduleItem, setSelectedScheduleItem] = useState(null);
 
   useEffect(() => {
     loadEvents();
+    loadScheduleItems();
   }, []);
 
   async function loadEvents() {
     const data = await fetchEvents();
     setEvents(data);
+  }
+
+  async function loadScheduleItems() {
+    const data = await fetchScheduleItems();
+    setScheduleItems(data);
   }
 
   function getStartOfWeek(date) {
@@ -107,7 +116,6 @@ export default function Calendar() {
     return events
       .filter(e => {
         const eDate = new Date(e.date);
-
         return (
           eDate.getFullYear() === date.getFullYear() &&
           eDate.getMonth() === date.getMonth() &&
@@ -121,18 +129,21 @@ export default function Calendar() {
       }));
   };
 
-  const upcomingEvents = events
-    .map(e => ({
-      ...e,
-      datetime: new Date(
-        `${e.date}T${e.hour.toString().padStart(2,'0')}:${e.minute
-          .toString()
-          .padStart(2,'0')}:00`
-      )
-    }))
-    .filter(e => e.datetime > new Date())
-    .sort((a, b) => a.datetime - b.datetime)
-    .slice(0, 10);
+  const getScheduleItemsForCell = (date, hour) => {
+    return scheduleItems
+      .filter(s => {
+        return (
+          s.datetime.getFullYear() === date.getFullYear() &&
+          s.datetime.getMonth() === date.getMonth() &&
+          s.datetime.getDate() === date.getDate() &&
+          s.hour === hour
+        );
+      })
+      .map(s => ({
+        ...s,
+        topPercent: (s.minute / 60) * 100
+      }));
+  };
 
   return (
     <div className="calendar-page">
@@ -171,6 +182,7 @@ export default function Calendar() {
             {weekDates.map((date, index) => {
               const isToday = isSameDay(date, today);
               const cellEvents = getEventsForCell(date, hour);
+              const cellScheduleItems = getScheduleItemsForCell(date, hour);
 
               return (
                 <div
@@ -194,34 +206,29 @@ export default function Calendar() {
                         .padStart(2,'0')})
                     </div>
                   ))}
+
+                  {cellScheduleItems.map((s, i) => (
+                    <div
+                      key={i}
+                      className="event schedule-item"
+                      style={{
+                        top: `${s.topPercent}%`,
+                        position: 'absolute',
+                        width: '95%',
+                        cursor: 'pointer'
+                      }}
+                      onClick={() => setSelectedScheduleItem(s)}
+                    >
+                      {s.itemTitle} ({s.hour}:{s.minute
+                        .toString()
+                        .padStart(2,'0')})
+                    </div>
+                  ))}
                 </div>
               );
             })}
           </React.Fragment>
         ))}
-      </div>
-
-      <div className="upcoming-events">
-        <h2>Next 10 Upcoming Events</h2>
-
-        {upcomingEvents.length === 0 ? (
-          <p>No upcoming events.</p>
-        ) : (
-          <ul>
-            {upcomingEvents.map((e, i) => (
-              <li
-                key={i}
-                style={{ cursor: "pointer" }}
-                onClick={() => setSelectedEvent(e)}
-              >
-                <strong>{e.title}</strong> –{" "}
-                {e.datetime.toLocaleDateString()}{" "}
-                {e.datetime.getHours()}:
-                {e.datetime.getMinutes().toString().padStart(2,'0')}
-              </li>
-            ))}
-          </ul>
-        )}
       </div>
 
       {/* ADD EVENT MODAL */}
@@ -290,6 +297,40 @@ export default function Calendar() {
           </div>
         </div>
       )}
+
+      {/* SCHEDULE ITEM MODAL */}
+
+      {selectedScheduleItem && (
+        <div className="modal-overlay" onClick={() => setSelectedScheduleItem(null)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <h2>{selectedScheduleItem.itemTitle}</h2>
+
+            <p className="schedule-item-time">
+              {selectedScheduleItem.datetime.toLocaleDateString()} –{' '}
+              {selectedScheduleItem.hour}:
+              {selectedScheduleItem.minute.toString().padStart(2,'00')}
+            </p>
+
+            <div className="schedule-item-fields">
+              {selectedScheduleItem.fields.map((field, i) => (
+                field.value ? (
+                  <div key={i} className="schedule-item-field">
+                    <span className="field-label">{field.categoryTitle}:</span>
+                    <span className="field-value">{field.value}</span>
+                  </div>
+                ) : null
+              ))}
+            </div>
+
+            <div className="modal-buttons">
+              <button onClick={() => setSelectedScheduleItem(null)}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
