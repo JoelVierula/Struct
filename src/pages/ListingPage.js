@@ -95,34 +95,34 @@ export default function ItemManager() {
   return (
     <div className="manager-container">
 
-      {/* Search & Top Controls */}
+      {/* Búsqueda y controles superiores */}
       <div className="top-controls">
         <button 
           className="btn" 
           onClick={() => setModalMode('create')}
           disabled={tier === 'free' && items.length >= 10}
         >
-          Add Item
+          Agregar elemento
         </button>
 
         <input
           type="text"
-          placeholder="Search items..."
+          placeholder="Buscar elementos..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="input search-input"
         />
         
-        <button className="btn" onClick={() => setOpenSearchModal(true)}>Filter</button>
-        <button className="btn-delete" onClick={() => triggerDelete()}>Delete Selected</button>
+        <button className="btn" onClick={() => setOpenSearchModal(true)}>Filtrar</button>
+        <button className="btn-delete" onClick={() => triggerDelete()}>Eliminar seleccionados</button>
 
-        {/* ✅ ITEM COUNTER */}
+        {/* CONTADOR DE ELEMENTOS */}
         <div className="item-count">
           {filteredItems.length} / {items.length}
         </div>
       </div>
 
-      {/* Item List */}
+      {/* Lista de elementos */}
       <div className="items-list">
         {filteredItems.map(item => (
           <div key={item.id} className="item-row">
@@ -139,7 +139,7 @@ export default function ItemManager() {
         ))}
       </div>
 
-      {/* Editor Modal */}
+      {/* Modal editor */}
       <ItemEditorModal 
         mode={modalMode} 
         activeItem={activeItem}
@@ -149,11 +149,11 @@ export default function ItemManager() {
         onRefresh={loadData}
       />
 
-      {/* Filter Modal */}
+      {/* Modal de filtros */}
       {openSearchModal && (
         <div className="modal-overlay">
           <div className="modal">
-            <h2>Filter by Categories</h2>
+            <h2>Filtrar por categorías</h2>
             {categories.map(cat => (
               <div key={cat.id} className="category-input-row">
                 <label>{cat.title}</label>
@@ -162,27 +162,27 @@ export default function ItemManager() {
                   onChange={e => setCategoryFilters({...categoryFilters, [cat.id]: e.target.value})}
                   className="input"
                 >
-                  <option value="">-- All --</option>
+                  <option value="">-- Todos --</option>
                   {categoryDropdowns[cat.id]?.map(val => (
                     <option key={val} value={val}>{val}</option>
                   ))}
                 </select>
               </div>
             ))}
-            <button className="btn" onClick={() => setOpenSearchModal(false)}>Close</button>
+            <button className="btn" onClick={() => setOpenSearchModal(false)}>Cerrar</button>
           </div>
         </div>
       )}
 
-      {/* Confirm Delete Modal */}
+      {/* Modal de confirmación de eliminación */}
       {openConfirmDelete && (
         <div className="modal-overlay">
           <div className="modal">
-            <h2>Confirm Delete</h2>
-            <p>Delete {deleteConfig.mode === 'multi' ? 'selected items' : 'this item'}?</p>
+            <h2>Confirmar eliminación</h2>
+            <p>¿Eliminar {deleteConfig.mode === 'multi' ? 'los elementos seleccionados' : 'este elemento'}?</p>
             <div className="modal-actions">
-              <button className="btn" onClick={() => setOpenConfirmDelete(false)}>Cancel</button>
-              <button className="btn-delete" onClick={confirmDelete}>Delete</button>
+              <button className="btn" onClick={() => setOpenConfirmDelete(false)}>Cancelar</button>
+              <button className="btn-delete" onClick={confirmDelete}>Eliminar</button>
             </div>
           </div>
         </div>

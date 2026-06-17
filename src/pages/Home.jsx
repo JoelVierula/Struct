@@ -52,7 +52,7 @@ export default function Home() {
       const diff = end - now;
 
       if (diff <= 0) {
-        setTimeLeft("Expired");
+        setTimeLeft("Expirado");
         return;
       }
 
@@ -60,8 +60,8 @@ export default function Home() {
       const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
       const minutes = Math.floor((diff / (1000 * 60)) % 60);
 
-      setTimeLeft(`${days}d ${hours}h ${minutes}m left`);
-    }, 1000 * 60); // updates every minute (efficient)
+      setTimeLeft(`${days}d ${hours}h ${minutes}m restantes`);
+    }, 1000 * 60);
 
     return () => clearInterval(interval);
   }, [profile]);
@@ -73,7 +73,7 @@ export default function Home() {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      alert("You must be logged in");
+      alert("Debes iniciar sesión");
       return;
     }
 
@@ -115,7 +115,7 @@ export default function Home() {
     const result = await res.json();
 
     if (result.success) {
-      alert("Subscription will cancel at period end.");
+      alert("La suscripción se cancelará al final del período.");
       fetchProfile();
     }
   };
@@ -147,7 +147,7 @@ export default function Home() {
           onClick={() => setUpgradeModalOpen(true)}
           style={{ marginTop: '20px', backgroundColor: '#f0ad4e', color: 'white' }}
         >
-          Upgrade to Pro
+          Mejorar a Pro
         </button>
       );
     }
@@ -156,7 +156,7 @@ export default function Home() {
       return (
         <div style={{ marginTop: '20px', color: '#ccc', fontSize: 13 }}>
           <div>
-            Pro until {endDate ? endDate.toLocaleDateString() : "unknown date"}
+            Pro hasta {endDate ? endDate.toLocaleDateString() : "fecha desconocida"}
           </div>
 
           <div style={{ marginTop: 5, color: "#aaa" }}>
@@ -171,14 +171,14 @@ export default function Home() {
         onClick={handleCancelSubscription}
         style={{ marginTop: '20px', backgroundColor: '#d9534f', color: 'white' }}
       >
-        Cancel Subscription
+        Cancelar suscripción
       </button>
     );
   };
 
   const handleAddItem = () => {
     if (profile?.tier === 'free' && items.length >= 3) {
-      alert('Free tier limit reached. Upgrade to Pro for more lists.');
+      alert('Límite del plan gratuito alcanzado. Mejora a Pro para más listas.');
       return;
     }
     setModalOpen(true);
@@ -188,7 +188,7 @@ export default function Home() {
     <div className="app-container">
 
       <div className="sidebar">
-        <button onClick={() => navigate('/calendar')}>Calendar</button>
+        <button onClick={() => navigate('/calendar')}>Calendario</button>
 
         {renderSubscriptionButton()}
       </div>
@@ -202,7 +202,7 @@ export default function Home() {
 
             <input
               type="text"
-              placeholder="Search..."
+              placeholder="Buscar..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               className="search-input"
@@ -213,10 +213,10 @@ export default function Home() {
 
           <div className="items-container">
             {loading ? (
-              <p style={{ padding: '20px', color: '#666' }}>Loading...</p>
+              <p style={{ padding: '20px', color: '#666' }}>Cargando...</p>
             ) : filteredItems.length === 0 ? (
               <p style={{ padding: '20px', color: '#666' }}>
-                No listings yet. Add one using the "+" button.
+                Aún no hay entradas. Agrega una con el botón "+".
               </p>
             ) : (
               filteredItems.map(item => (
@@ -232,11 +232,11 @@ export default function Home() {
         </div>
       </div>
 
-      {/* MODALS unchanged */}
+      {/* MODALS */}
       {modalOpen && (
         <div className="modal-overlay" onClick={() => setModalOpen(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <h2>Enter text</h2>
+            <h2>Ingresa el texto</h2>
             <input
               type="text"
               value={modalText}
@@ -245,9 +245,9 @@ export default function Home() {
               className="modal-input"
             />
             <div className="modal-buttons">
-              <button onClick={() => setModalOpen(false)}>Close</button>
+              <button onClick={() => setModalOpen(false)}>Cerrar</button>
               <button onClick={() => addItem(modalText, items, setItems, setModalText, setModalOpen)}>
-                Add
+                Agregar
               </button>
             </div>
           </div>
@@ -257,13 +257,13 @@ export default function Home() {
       {deleteModalOpen && (
         <div className="modal-overlay" onClick={() => setDeleteModalOpen(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <h2>Delete Listing</h2>
-            <p>Are you sure?</p>
-            <button onClick={() => setDeleteModalOpen(false)}>Cancel</button>
+            <h2>Eliminar entrada</h2>
+            <p>¿Estás seguro?</p>
+            <button onClick={() => setDeleteModalOpen(false)}>Cancelar</button>
             <button onClick={() =>
               deleteListing(itemToDelete, items, setItems, setDeleteModalOpen, setItemToDelete)
             }>
-              Delete
+              Eliminar
             </button>
           </div>
         </div>
@@ -272,10 +272,10 @@ export default function Home() {
       {upgradeModalOpen && (
         <div className="modal-overlay" onClick={() => setUpgradeModalOpen(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <h2>Upgrade to Pro</h2>
-            <p>Upgrade to Pro and enjoy unlimited lists!</p>
-            <button onClick={() => setUpgradeModalOpen(false)}>Cancel</button>
-            <button onClick={upgradeToPro}>Upgrade</button>
+            <h2>Mejorar a Pro</h2>
+            <p>¡Mejora a Pro y disfruta de listas ilimitadas!</p>
+            <button onClick={() => setUpgradeModalOpen(false)}>Cancelar</button>
+            <button onClick={upgradeToPro}>Mejorar</button>
           </div>
         </div>
       )}

@@ -2,19 +2,19 @@ import React, { useState } from "react";
 import { supabase } from "../supabaseClient";
 
 export const CATEGORY_TYPE_OPTIONS = [
-  { label: "Own", value: "own" },
-  { label: "Date", value: "date" },
-  { label: "Schedule", value: "schedule" },
-  { label: "Lead", value: "lead" }
+  { label: "Propio", value: "own" },
+  { label: "Fecha", value: "date" },
+  { label: "Horario", value: "schedule" },
+  { label: "Cliente potencial", value: "lead" }
 ];
 
 const LEAD_OPTIONS = [
-  "Connected",
-  "Rejected",
-  "Contact",
-  "Follow up 1",
-  "Follow up 2",
-  "Follow up 3"
+  "Conectado",
+  "Rechazado",
+  "Contacto",
+  "Seguimiento 1",
+  "Seguimiento 2",
+  "Seguimiento 3"
 ];
 
 export function CategoryField({
@@ -79,7 +79,7 @@ export function CategoryField({
             disabled={locked}
             onClick={() => !locked && setOpenLeadMenu(prev => !prev)}
           >
-            {value || "Choose"}
+            {value || "Elegir"}
           </button>
           {openLeadMenu && !locked && (
             <div className="lead-dropdown">

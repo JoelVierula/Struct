@@ -16,6 +16,8 @@ export default function LoginPage() {
 
   const [resetEmailSent, setResetEmailSent] = useState(false);
 
+  const [cooldown, setCooldown] = useState(0);
+
   const [registrationData, setRegistrationData] = useState({
     email: "",
     password: "",
@@ -29,7 +31,6 @@ export default function LoginPage() {
   useEffect(() => {
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
-
       if (data.session) {
         setIsLoggedIn(true);
       }
@@ -48,7 +49,24 @@ export default function LoginPage() {
     };
   }, []);
 
-  // OPEN LOGIN MODAL (reset forgot password state)
+  // COOLDOWN TIMER
+  useEffect(() => {
+    if (cooldown <= 0) return;
+
+    const timer = setInterval(() => {
+      setCooldown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [cooldown]);
+
+  // OPEN LOGIN MODAL
   const openLoginModal = () => {
     setResetEmailSent(false);
     setShowLogin(true);
@@ -56,13 +74,16 @@ export default function LoginPage() {
 
   // LOGIN
   const handleLogin = async () => {
+    if (cooldown > 0) return;
+
     const { error } = await supabase.auth.signInWithPassword({
       email: loginEmail,
       password: loginPassword
     });
 
     if (error) {
-      alert("Invalid email or password!");
+      alert("¡Correo o contraseña incorrectos!");
+      setCooldown(3);
     } else {
       setIsLoggedIn(true);
       closeAllModals();
@@ -72,7 +93,7 @@ export default function LoginPage() {
   // FORGOT PASSWORD
   const handleForgotPassword = async () => {
     if (!loginEmail) {
-      alert("Please enter your email first.");
+      alert("Por favor, ingresa tu correo electrónico primero.");
       return;
     }
 
@@ -89,12 +110,8 @@ export default function LoginPage() {
 
   // LOGOUT
   const handleLogout = async () => {
-    const confirmLogout = window.confirm(
-      "Are you sure you want to log out?"
-    );
-
+    const confirmLogout = window.confirm("¿Estás seguro de que quieres cerrar sesión?");
     if (!confirmLogout) return;
-
     await supabase.auth.signOut();
     setIsLoggedIn(false);
   };
@@ -104,12 +121,12 @@ export default function LoginPage() {
     const { email, password, confirmPassword, name } = registrationData;
 
     if (!email || !password || !confirmPassword || !name) {
-      setRegistrationError("All fields are required.");
+      setRegistrationError("Todos los campos son obligatorios.");
       return false;
     }
 
     if (password !== confirmPassword) {
-      setRegistrationError("Passwords do not match.");
+      setRegistrationError("Las contraseñas no coinciden.");
       return false;
     }
 
@@ -119,7 +136,6 @@ export default function LoginPage() {
   // REGISTER
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
-
     if (!validateRegistration()) return;
 
     const { error } = await supabase.auth.signUp({
@@ -164,34 +180,22 @@ export default function LoginPage() {
         <div className="header-buttons">
           {!isLoggedIn ? (
             <>
-              <button
-                className="btn"
-                onClick={openLoginModal}
-              >
-                Login
+              <button className="btn" onClick={openLoginModal}>
+                Iniciar sesión
               </button>
 
-              <button
-                className="btn"
-                onClick={() => setShowRegister(true)}
-              >
-                Register
+              <button className="btn" onClick={() => setShowRegister(true)}>
+                Registrarse
               </button>
             </>
           ) : (
             <>
-              <button
-                className="btn"
-                onClick={() => navigate("/home")}
-              >
-                Go to the App
+              <button className="btn" onClick={() => navigate("/home")}>
+                Ir a la aplicación
               </button>
 
-              <button
-                className="btn"
-                onClick={handleLogout}
-              >
-                Log Out
+              <button className="btn" onClick={handleLogout}>
+                Cerrar sesión
               </button>
             </>
           )}
@@ -202,11 +206,11 @@ export default function LoginPage() {
       {showLogin && (
         <div className="modal-overlay">
           <div className="modal">
-            <h2>Login</h2>
+            <h2>Iniciar sesión</h2>
 
             <input
               type="email"
-              placeholder="Email"
+              placeholder="Correo electrónico"
               className="input"
               value={loginEmail}
               onChange={(e) => setLoginEmail(e.target.value)}
@@ -214,13 +218,12 @@ export default function LoginPage() {
 
             <input
               type="password"
-              placeholder="Password"
+              placeholder="Contraseña"
               className="input"
               value={loginPassword}
               onChange={(e) => setLoginPassword(e.target.value)}
             />
 
-            {/* FORGOT PASSWORD */}
             {!resetEmailSent ? (
               <p
                 style={{
@@ -232,7 +235,7 @@ export default function LoginPage() {
                 }}
                 onClick={handleForgotPassword}
               >
-                Forgot password?
+                ¿Olvidaste tu contraseña?
               </p>
             ) : (
               <p
@@ -243,17 +246,22 @@ export default function LoginPage() {
                   textAlign: "left"
                 }}
               >
-                Reset email sent! Check your inbox.
+                ¡Correo de recuperación enviado! Revisa tu bandeja de entrada.
               </p>
             )}
 
             <div className="btn-row">
-              <button className="btn" onClick={handleLogin}>
-                Login
+              <button
+                className="btn"
+                onClick={handleLogin}
+                disabled={cooldown > 0}
+                style={{ opacity: cooldown > 0 ? 0.5 : 1, cursor: cooldown > 0 ? "not-allowed" : "pointer" }}
+              >
+                {cooldown > 0 ? `Espera ${cooldown}s...` : "Iniciar sesión"}
               </button>
 
               <button className="btn" onClick={closeAllModals}>
-                Cancel
+                Cancelar
               </button>
             </div>
           </div>
@@ -264,7 +272,7 @@ export default function LoginPage() {
       {showRegister && (
         <div className="modal-overlay">
           <div className="modal">
-            <h2>Create Account</h2>
+            <h2>Crear cuenta</h2>
 
             {registrationError && (
               <div style={{ color: "red", marginBottom: "10px" }}>
@@ -272,13 +280,10 @@ export default function LoginPage() {
               </div>
             )}
 
-            <form
-              onSubmit={handleRegisterSubmit}
-              className="modal-form"
-            >
+            <form onSubmit={handleRegisterSubmit} className="modal-form">
               <input
                 type="email"
-                placeholder="Email"
+                placeholder="Correo electrónico"
                 className="input"
                 value={registrationData.email}
                 onChange={(e) =>
@@ -292,7 +297,7 @@ export default function LoginPage() {
 
               <input
                 type="password"
-                placeholder="Password"
+                placeholder="Contraseña"
                 className="input"
                 value={registrationData.password}
                 onChange={(e) =>
@@ -306,7 +311,7 @@ export default function LoginPage() {
 
               <input
                 type="password"
-                placeholder="Confirm Password"
+                placeholder="Confirmar contraseña"
                 className="input"
                 value={registrationData.confirmPassword}
                 onChange={(e) =>
@@ -320,7 +325,7 @@ export default function LoginPage() {
 
               <input
                 type="text"
-                placeholder="Name"
+                placeholder="Nombre"
                 className="input"
                 value={registrationData.name}
                 onChange={(e) =>
@@ -334,7 +339,7 @@ export default function LoginPage() {
 
               <div className="btn-row">
                 <button type="submit" className="btn">
-                  Register
+                  Registrarse
                 </button>
 
                 <button
@@ -342,7 +347,7 @@ export default function LoginPage() {
                   className="btn"
                   onClick={closeAllModals}
                 >
-                  Cancel
+                  Cancelar
                 </button>
               </div>
             </form>
