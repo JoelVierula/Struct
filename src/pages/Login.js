@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import logo from "./struct_logo2.jpg";
+import tutorialVideo from "./tutorialvideo_mobile.mp4";
 import "./login.css";
 
 export default function LoginPage() {
@@ -201,6 +202,19 @@ export default function LoginPage() {
           )}
         </div>
       </header>
+
+      {/* TUTORIAL VIDEO */}
+      <div className="video-section">
+        <div className="video-wrapper">
+          <video
+            className="tutorial-video"
+            src={tutorialVideo}
+            controls
+            playsInline
+          />
+          <span className="video-overlay-text">Cómo agregar un esquema</span>
+        </div>
+      </div>
 
       {/* LOGIN MODAL */}
       {showLogin && (
