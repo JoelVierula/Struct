@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
+import { updateCategoryTitle } from "./supabaseService";
 
 export const CATEGORY_TYPE_OPTIONS = [
   { label: "Propio", value: "own" },
@@ -28,6 +29,13 @@ export function CategoryField({
 }) {
   const [openTypeMenu, setOpenTypeMenu] = useState(false);
   const [openLeadMenu, setOpenLeadMenu] = useState(false);
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [titleDraft, setTitleDraft] = useState(cat.title);
+
+  // Keep the draft in sync if the category title changes externally (e.g. after refresh)
+  useEffect(() => {
+    setTitleDraft(cat.title);
+  }, [cat.title]);
 
   const updateCategoryType = async (newType) => {
     const { error } = await supabase
@@ -45,6 +53,37 @@ export function CategoryField({
   };
 
   const canEditType = mode === "create" || !cat.is_global;
+  const canRename = canEditType && !locked;
+
+  const handleRenameSave = async () => {
+    const trimmed = titleDraft.trim();
+
+    if (!trimmed || trimmed === cat.title) {
+      setTitleDraft(cat.title);
+      setEditingTitle(false);
+      return;
+    }
+
+    try {
+      await updateCategoryTitle(cat.id, trimmed);
+      setEditingTitle(false);
+      onRefresh?.();
+    } catch (err) {
+      console.error("Failed to rename category:", err);
+      setTitleDraft(cat.title);
+      setEditingTitle(false);
+    }
+  };
+
+  const handleTitleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleRenameSave();
+    } else if (e.key === "Escape") {
+      setTitleDraft(cat.title);
+      setEditingTitle(false);
+    }
+  };
 
   const renderInput = () => {
     if (cat.type === "date") {
@@ -117,9 +156,29 @@ export function CategoryField({
 
       {/* LABEL */}
       <div className="category-header">
-        <label>
-          {cat.title} {cat.type === "date"} {cat.type === "lead"}
-        </label>
+        {editingTitle ? (
+          <input
+            autoFocus
+            className="input category-title-input"
+            value={titleDraft}
+            onChange={(e) => setTitleDraft(e.target.value)}
+            onBlur={handleRenameSave}
+            onKeyDown={handleTitleKeyDown}
+          />
+        ) : (
+          <label>{cat.title}</label>
+        )}
+
+        {/* RENAME BUTTON — only when editable AND lock is open */}
+        {canRename && !editingTitle && (
+          <button
+            className="btn-rename"
+            onClick={() => setEditingTitle(true)}
+            title="Renombrar categoría"
+          >
+            ✏️
+          </button>
+        )}
 
         {/* DELETE BUTTON — create mode for all, edit mode for local only */}
         {(mode === "create" || (mode === "edit" && !cat.is_global)) && (

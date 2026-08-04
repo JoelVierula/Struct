@@ -119,6 +119,16 @@ export const addCategory = async (title, items, listingId, isGlobal = true) => {
   return data;
 };
 
+// ---------------- UPDATE CATEGORY TITLE ----------------
+export const updateCategoryTitle = async (categoryId, title) => {
+  const { error } = await supabase
+    .from("categories")
+    .update({ title })
+    .eq("id", categoryId);
+
+  if (error) throw error;
+};
+
 // ---------------- DELETE ITEM(S) ----------------
 export const deleteItem = async (itemId) => {
   const { error } = await supabase.from("items").delete().eq("id", itemId);

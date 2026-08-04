@@ -214,6 +214,7 @@
 .category-header {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 6px;
   width: 120px;
 }
@@ -273,6 +274,30 @@
 .btn-lock:hover {
   background: #0D1F44;
   color: white;
+}
+
+/* ----------------- RENAME CATEGORY ----------------- */
+
+.btn-rename {
+  background: transparent;
+  border: 1px solid #0D1F44;
+  color: #0D1F44;
+  border-radius: 6px;
+  cursor: pointer;
+  padding: 2px 6px;
+  font-size: 0.8rem;
+}
+
+.btn-rename:hover {
+  background: #0D1F44;
+  color: white;
+}
+
+.category-title-input {
+  width: auto;
+  flex: 1;
+  min-width: 60px;
+  font-size: 0.85rem;
 }
 
 /* ----------------- LEAD SELECTOR ----------------- */
