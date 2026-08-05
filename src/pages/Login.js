@@ -203,8 +203,21 @@ export default function LoginPage() {
         </div>
       </header>
 
-      {/* TUTORIAL VIDEO */}
-      <div className="video-section">
+      {/* HERO SECTION */}
+      <div className="hero-section">
+        <div className="hero-text">
+          <h1 className="hero-title">¿Qué es Struct?
+</h1>
+          <p className="hero-body">
+            Struct es una aplicación ligera de gestión de datos diseñada principalmente para pequeñas empresas. Te ayuda a organizar la información de forma clara y estructurada, ya que todos los elementos de una misma lista siguen el mismo esquema, lo que facilita la navegación y el mantenimiento de los datos.
+
+Los esquemas son completamente personalizables, lo que te permite modificar los campos y ajustar los tipos de categorías para adaptarlos a tus necesidades y flujo de trabajo.
+
+Crear una cuenta es totalmente gratuito. Las cuentas gratuitas incluyen acceso a las mismas funciones que las cuentas de pago; la única limitación es la cantidad de datos que puedes almacenar y gestionar.
+
+          </p>
+        </div>
+
         <div className="video-wrapper">
           <video
             className="tutorial-video"

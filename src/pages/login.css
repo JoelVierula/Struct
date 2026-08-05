@@ -1,25 +1,24 @@
 /* PAGE */
 .page {
   min-height: 100vh;
-  /* background-color: gray; */
-  background: linear-gradient(to right, gray, #0D1F44); /* gradient from white to blue */
+  background: linear-gradient(to right, gray, #0D1F44);
   color: #0D1F44;
   font-family: Arial, sans-serif;
 }
+
 /* HEADER */
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 24px 48px;
-  background: linear-gradient(to right, white, #0D1F44); /* gradient from white to blue */
+  background: linear-gradient(to right, white, #0D1F44);
 }
 
 .logo {
-  font-size: 28px;
-  font-weight: bold;
-  margin: 0;
-  color: white;
+  height: 50px;
+  width: auto;
+  object-fit: contain;
 }
 
 .header-buttons {
@@ -45,19 +44,47 @@
   color: #0D1F44;
 }
 
-/* VIDEO SECTION */
-.video-section {
+/* HERO SECTION */
+.hero-section {
   display: flex;
-  justify-content: flex-start;
   align-items: center;
-  padding: 24px 48px;
+  justify-content: space-between;
+  padding: 60px 48px;
+  gap: 48px;
 }
 
+.hero-text {
+  flex: 1;
+  color: white;
+  background-color: rgba(13, 31, 68, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  padding: 36px 40px;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.hero-title {
+  font-size: 42px;
+  font-weight: 700;
+  margin: 0 0 24px 0;
+  line-height: 1.2;
+}
+
+.hero-body {
+  font-size: 20px;
+  line-height: 1.7;
+  margin: 0;
+  opacity: 0.9;
+}
+
+/* VIDEO SECTION */
 .video-wrapper {
   position: relative;
   display: inline-block;
   width: 100%;
   max-width: 220px;
+  flex-shrink: 0;
 }
 
 .tutorial-video {
@@ -151,15 +178,11 @@
   margin-bottom: 10px;
   font-size: 14px;
 }
-.logo {
-  height: 50px;
-  width: auto;
-  object-fit: contain;
-}
 
-body{
+body {
   margin: 0px;
 }
+
 /* =========================
    RESPONSIVE DESIGN
 ========================= */
@@ -182,6 +205,19 @@ body{
   .modal {
     width: 90%;
     padding: 24px;
+  }
+
+  .hero-section {
+    padding: 40px 24px;
+    gap: 32px;
+  }
+
+  .hero-title {
+    font-size: 32px;
+  }
+
+  .hero-body {
+    font-size: 17px;
   }
 }
 
@@ -214,7 +250,7 @@ body{
   }
 
   .input {
-    font-size: 16px; /* prevents iPhone zoom on focus */
+    font-size: 16px;
     padding: 12px;
   }
 
@@ -230,12 +266,24 @@ body{
     height: 38px;
   }
 
-  .video-section {
-    justify-content: center;
-    padding: 16px;
+  /* Stack hero vertically on phones */
+  .hero-section {
+    flex-direction: column;
+    padding: 32px 16px;
+    gap: 24px;
+    align-items: flex-start;
+  }
+
+  .hero-title {
+    font-size: 26px;
+  }
+
+  .hero-body {
+    font-size: 16px;
   }
 
   .video-wrapper {
     max-width: 180px;
+    align-self: center;
   }
 }
