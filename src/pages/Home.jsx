@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { fetchItems, addItem, deleteListing } from './todoLogic';
+import { fetchItems, addItem, deleteListing, renameItem } from './todoLogic';
 import { supabase } from '../supabaseClient';
 import "./home.css";
 
@@ -13,6 +13,10 @@ export default function Home() {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+
+  const [renameModalOpen, setRenameModalOpen] = useState(false);
+  const [itemToRename, setItemToRename] = useState(null);
+  const [renameText, setRenameText] = useState('');
 
   const [profile, setProfile] = useState(null);
   const [timeLeft, setTimeLeft] = useState('');
@@ -125,6 +129,12 @@ export default function Home() {
     setDeleteModalOpen(true);
   };
 
+  const openRename = (item) => {
+    setItemToRename(item);
+    setRenameText(item.task);
+    setRenameModalOpen(true);
+  };
+
   const filteredItems = items.filter(item =>
     item.task.toLowerCase().startsWith(searchTerm.toLowerCase())
   );
@@ -158,7 +168,6 @@ export default function Home() {
           <div>
             Pro hasta {endDate ? endDate.toLocaleDateString() : "fecha desconocida"}
           </div>
-
           <div style={{ marginTop: 5, color: "#aaa" }}>
             {timeLeft}
           </div>
@@ -189,7 +198,6 @@ export default function Home() {
 
       <div className="sidebar">
         <button onClick={() => navigate('/calendar')}>Calendario</button>
-
         {renderSubscriptionButton()}
       </div>
 
@@ -224,6 +232,7 @@ export default function Home() {
                   <Link to={`/listing/${item.uuid_id}`} className="item-link">
                     <div className="item">{item.task}</div>
                   </Link>
+                  <button className="edit-button" onClick={() => openRename(item)}>✎</button>
                   <button className="delete-button" onClick={() => openDelete(item)}>X</button>
                 </div>
               ))
@@ -265,6 +274,29 @@ export default function Home() {
             }>
               Eliminar
             </button>
+          </div>
+        </div>
+      )}
+
+      {renameModalOpen && (
+        <div className="modal-overlay" onClick={() => setRenameModalOpen(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <h2>Renombrar lista</h2>
+            <input
+              type="text"
+              value={renameText}
+              onChange={e => setRenameText(e.target.value)}
+              autoFocus
+              className="modal-input"
+            />
+            <div className="modal-buttons">
+              <button onClick={() => setRenameModalOpen(false)}>Cancelar</button>
+              <button onClick={() =>
+                renameItem(itemToRename, renameText, items, setItems, setRenameModalOpen, setItemToRename)
+              }>
+                Guardar
+              </button>
+            </div>
           </div>
         </div>
       )}

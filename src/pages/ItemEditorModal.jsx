@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   createItem as createItemAPI,
   updateValue as updateValueAPI,
@@ -25,6 +25,13 @@ const TEMPLATES = [
     ]
   }
 ];
+
+// ---------------- AUTO-RESIZE HELPER ----------------
+function autoResize(el) {
+  if (!el) return;
+  el.style.height = "auto";
+  el.style.height = el.scrollHeight + "px";
+}
 
 // ---------------- TEMPLATES MODAL ----------------
 function TemplatesModal({ onClose, onApply }) {
@@ -74,6 +81,8 @@ export default function ItemEditorModal({
 
   const [showTemplates, setShowTemplates] = useState(false);
 
+  const textareaRefs = useRef({});
+
   // ---------------- LOAD CATEGORIES ----------------
   const loadCategories = useCallback(async () => {
     try {
@@ -117,8 +126,13 @@ export default function ItemEditorModal({
     loadCategories();
   }, [mode, activeItem, loadCategories]);
 
+  // ---------------- RESIZE ALL TEXTAREAS AFTER VALUES LOAD ----------------
+  useEffect(() => {
+    Object.values(textareaRefs.current).forEach(autoResize);
+  }, [categoryValues]);
+
   // ---------------- TRACK INPUT ----------------
-  const handleChange = (catId, value) => {
+  const handleChange = (catId, value, el) => {
     setCategoryValues((prev) => ({
       ...prev,
       [catId]: value
@@ -128,6 +142,8 @@ export default function ItemEditorModal({
       ...prev,
       [catId]: true
     }));
+
+    autoResize(el);
   };
 
   // ---------------- APPLY TEMPLATE ----------------
@@ -144,7 +160,8 @@ export default function ItemEditorModal({
           title: cat.title,
           type: cat.type,
           listing_uuid: listingId,
-          is_global: true
+          is_global: true,
+          order: categories.length
         })
         .select()
         .single();
@@ -276,7 +293,8 @@ export default function ItemEditorModal({
         id: uuidv4(),
         title: newCategoryTitle,
         listing_uuid: listingId,
-        is_global: mode === "create"
+        is_global: mode === "create",
+        order: categories.length
       })
       .select()
       .single();
@@ -327,11 +345,17 @@ export default function ItemEditorModal({
           {/* ITEM TITLE */}
           <div className="category-input-row">
             <label>Nombre del elemento</label>
-            <input
+            <textarea
               value={itemTitle}
               readOnly={globalLocked}
-              onChange={(e) => setItemTitle(e.target.value)}
-              className="input"
+              onChange={(e) => {
+                setItemTitle(e.target.value);
+                autoResize(e.target);
+              }}
+              ref={(el) => {
+                if (el) autoResize(el);
+              }}
+              className="input auto-textarea"
             />
           </div>
 
@@ -346,9 +370,13 @@ export default function ItemEditorModal({
                 mode={mode}
                 value={categoryValues[cat.id]}
                 locked={globalLocked}
-                onChange={(val) => handleChange(cat.id, val)}
+                onChange={(val, el) => handleChange(cat.id, val, el)}
                 onRefresh={loadCategories}
                 onDelete={() => handleDeleteCategory(cat)}
+                textareaRef={(el) => {
+                  textareaRefs.current[cat.id] = el;
+                  if (el) autoResize(el);
+                }}
               />
             ))}
           </div>

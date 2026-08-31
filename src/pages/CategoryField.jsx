@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "../supabaseClient";
 import { updateCategoryTitle } from "./supabaseService";
 
@@ -18,6 +18,12 @@ const LEAD_OPTIONS = [
   "Seguimiento 3"
 ];
 
+function autoResize(el) {
+  if (!el) return;
+  el.style.height = "auto";
+  el.style.height = el.scrollHeight + "px";
+}
+
 export function CategoryField({
   cat,
   mode,
@@ -32,10 +38,17 @@ export function CategoryField({
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState(cat.title);
 
-  // Keep the draft in sync if the category title changes externally (e.g. after refresh)
+  const textareaRef = useRef(null);
+
+  // Keep the draft in sync if the category title changes externally
   useEffect(() => {
     setTitleDraft(cat.title);
   }, [cat.title]);
+
+  // Resize whenever value changes (e.g. on load)
+  useEffect(() => {
+    autoResize(textareaRef.current);
+  }, [value]);
 
   const updateCategoryType = async (newType) => {
     const { error } = await supabase
@@ -140,13 +153,17 @@ export function CategoryField({
       );
     }
 
+    // "own" type — auto-resizing textarea
     return (
-      <input
-        type="text"
+      <textarea
+        ref={textareaRef}
         value={value || ""}
         readOnly={locked}
-        onChange={(e) => onChange(e.target.value)}
-        className="input"
+        onChange={(e) => {
+          onChange(e.target.value);
+          autoResize(e.target);
+        }}
+        className="input auto-textarea"
       />
     );
   };
@@ -169,7 +186,6 @@ export function CategoryField({
           <label>{cat.title}</label>
         )}
 
-        {/* RENAME BUTTON — only when editable AND lock is open */}
         {canRename && !editingTitle && (
           <button
             className="btn-rename"
@@ -180,14 +196,12 @@ export function CategoryField({
           </button>
         )}
 
-        {/* DELETE BUTTON — create mode for all, edit mode for local only */}
         {(mode === "create" || (mode === "edit" && !cat.is_global)) && (
           <button className="btn-delete" onClick={onDelete}>
             🗑
           </button>
         )}
 
-        {/* ONLY SHOW ARROW IF EDITABLE */}
         {canEditType && (
           <button
             className="type-arrow"
@@ -197,7 +211,6 @@ export function CategoryField({
           </button>
         )}
 
-        {/* ONLY SHOW DROPDOWN IF EDITABLE */}
         {openTypeMenu && canEditType && (
           <div className="type-dropdown">
             {CATEGORY_TYPE_OPTIONS.map(opt => (

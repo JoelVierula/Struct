@@ -360,3 +360,17 @@
   justify-content: space-between;
   align-items: center;
 }
+
+/* ----------------- AUTO-RESIZE TEXTAREA ----------------- */
+
+.auto-textarea {
+  resize: none;
+  overflow: hidden;
+  min-height: 34px;
+  max-width: 100%;
+  width: 100%;
+  line-height: 1.4;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+  display: block;
+}

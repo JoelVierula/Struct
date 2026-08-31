@@ -44,11 +44,6 @@ export const addItem = async (
 };
 
 // Delete a whole listing
-// Thanks to ON DELETE CASCADE in Supabase,
-// this automatically deletes related:
-// - items
-// - categories
-// - item_values
 export const deleteListing = async (
   itemToDelete,
   items,
@@ -66,7 +61,6 @@ export const deleteListing = async (
 
     if (error) throw error;
 
-    // Update frontend state
     setItems(
       items.filter(
         i => i.uuid_id !== itemToDelete.uuid_id
@@ -78,4 +72,38 @@ export const deleteListing = async (
 
   setDeleteModalOpen(false);
   setItemToDelete(null);
+};
+
+// Rename a todo list
+export const renameItem = async (
+  itemToRename,
+  newName,
+  items,
+  setItems,
+  setRenameModalOpen,
+  setItemToRename
+) => {
+  if (!itemToRename || !newName.trim()) return;
+
+  try {
+    const { error } = await supabase
+      .from('todos')
+      .update({ task: newName.trim() })
+      .eq('uuid_id', itemToRename.uuid_id);
+
+    if (error) throw error;
+
+    setItems(
+      items.map(i =>
+        i.uuid_id === itemToRename.uuid_id
+          ? { ...i, task: newName.trim() }
+          : i
+      )
+    );
+  } catch (err) {
+    console.error('Failed to rename listing:', err);
+  }
+
+  setRenameModalOpen(false);
+  setItemToRename(null);
 };
