@@ -171,7 +171,7 @@ export function CategoryField({
   return (
     <div className="category-input-row">
 
-      {/* LABEL */}
+      {/* LABEL + BUTTONS stacked vertically */}
       <div className="category-header">
         {editingTitle ? (
           <input
@@ -186,30 +186,32 @@ export function CategoryField({
           <label>{cat.title}</label>
         )}
 
-        {canRename && !editingTitle && (
-          <button
-            className="btn-rename"
-            onClick={() => setEditingTitle(true)}
-            title="Renombrar categoría"
-          >
-            ✏️
-          </button>
-        )}
+        <div className="category-header-buttons">
+          {canRename && !editingTitle && (
+            <button
+              className="btn-rename"
+              onClick={() => setEditingTitle(true)}
+              title="Renombrar categoría"
+            >
+              ✏️
+            </button>
+          )}
 
-        {(mode === "create" || (mode === "edit" && !cat.is_global)) && (
-          <button className="btn-delete" onClick={onDelete}>
-            🗑
-          </button>
-        )}
+          {(mode === "create" || (mode === "edit" && !cat.is_global)) && (
+            <button className="btn-delete" onClick={onDelete}>
+              🗑
+            </button>
+          )}
 
-        {canEditType && (
-          <button
-            className="type-arrow"
-            onClick={() => setOpenTypeMenu(prev => !prev)}
-          >
-            ⬇
-          </button>
-        )}
+          {canEditType && (
+            <button
+              className="type-arrow"
+              onClick={() => setOpenTypeMenu(prev => !prev)}
+            >
+              ⬇
+            </button>
+          )}
+        </div>
 
         {openTypeMenu && canEditType && (
           <div className="type-dropdown">
