@@ -381,3 +381,65 @@
   font-family: Arial, sans-serif;
   display: block;
 }
+
+/* ----------------- CUSTOM OPTIONS MANAGER ----------------- */
+
+.custom-options-manager {
+  flex: 1;
+  border: 1px solid #0D1F44;
+  border-radius: 6px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background-color: #f7f9ff;
+}
+
+.custom-options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.custom-option-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 6px;
+  border: 1px solid #cdd6f0;
+  border-radius: 6px;
+  background-color: white;
+  font-size: 0.85rem;
+  color: #0D1F44;
+}
+
+.custom-option-row span {
+  flex: 1;
+}
+
+.custom-option-row .btn-delete {
+  padding: 2px 7px;
+  font-size: 0.75rem;
+  height: auto;
+  line-height: 1.4;
+}
+
+.custom-option-add-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.custom-option-add-row .input {
+  flex: 1;
+  font-size: 0.85rem;
+  padding: 4px 8px;
+}
+
+.custom-option-add-row .btn {
+  padding: 4px 10px;
+  font-size: 1rem;
+  font-weight: bold;
+  line-height: 1;
+  height: auto;
+}

@@ -146,7 +146,13 @@ export const deleteItems = async (itemIds) => {
 
 // ---------------- DELETE CATEGORY ----------------
 export const deleteCategory = async (categoryId) => {
-  // 1️⃣ delete all values tied to category
+  // 1️⃣ delete all custom options tied to category
+  await supabase
+    .from("category_options")
+    .delete()
+    .eq("category_id", categoryId);
+
+  // 2️⃣ delete all values tied to category
   const { error: valError } = await supabase
     .from("item_values")
     .delete()
@@ -154,7 +160,7 @@ export const deleteCategory = async (categoryId) => {
 
   if (valError) throw valError;
 
-  // 2️⃣ delete category
+  // 3️⃣ delete category
   const { error } = await supabase
     .from("categories")
     .delete()
@@ -171,4 +177,51 @@ export const updateValue = async (valueId, value) => {
     .eq("id", valueId);
 
   if (error) throw error;
+};
+
+// ---------------- CATEGORY OPTIONS (Custom type) ----------------
+export const fetchCategoryOptions = async (categoryId) => {
+  const { data, error } = await supabase
+    .from("category_options")
+    .select("*")
+    .eq("category_id", categoryId)
+    .order("order", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching category options:", error);
+    return [];
+  }
+
+  return data || [];
+};
+
+export const addCategoryOption = async (categoryId, label, order = 0) => {
+  const { data, error } = await supabase
+    .from("category_options")
+    .insert({
+      id: uuidv4(),
+      category_id: categoryId,
+      label,
+      order
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error adding category option:", error);
+    return null;
+  }
+
+  return data;
+};
+
+export const deleteCategoryOption = async (optionId) => {
+  const { error } = await supabase
+    .from("category_options")
+    .delete()
+    .eq("id", optionId);
+
+  if (error) {
+    console.error("Error deleting category option:", error);
+  }
 };

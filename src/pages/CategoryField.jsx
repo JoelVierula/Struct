@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "../supabaseClient";
-import { updateCategoryTitle } from "./supabaseService";
+import { updateCategoryTitle, fetchCategoryOptions, addCategoryOption, deleteCategoryOption } from "./supabaseService";
 
 export const CATEGORY_TYPE_OPTIONS = [
   { label: "Propio", value: "own" },
   { label: "Fecha", value: "date" },
   { label: "Horario", value: "schedule" },
-  { label: "Cliente potencial", value: "lead" }
+  { label: "Cliente potencial", value: "lead" },
+  { label: "Personalizado", value: "custom" }
 ];
 
 const LEAD_OPTIONS = [
@@ -35,8 +36,14 @@ export function CategoryField({
 }) {
   const [openTypeMenu, setOpenTypeMenu] = useState(false);
   const [openLeadMenu, setOpenLeadMenu] = useState(false);
+  const [openCustomMenu, setOpenCustomMenu] = useState(false);
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState(cat.title);
+
+  // Custom type state
+  const [customOptions, setCustomOptions] = useState([]);
+  const [newOptionLabel, setNewOptionLabel] = useState("");
+  const [showCustomManager, setShowCustomManager] = useState(false);
 
   const textareaRef = useRef(null);
 
@@ -50,6 +57,18 @@ export function CategoryField({
     autoResize(textareaRef.current);
   }, [value]);
 
+  // Load custom options when category type is custom
+  useEffect(() => {
+    if (cat.type === "custom") {
+      loadCustomOptions();
+    }
+  }, [cat.id, cat.type]);
+
+  const loadCustomOptions = async () => {
+    const opts = await fetchCategoryOptions(cat.id);
+    setCustomOptions(opts);
+  };
+
   const updateCategoryType = async (newType) => {
     const { error } = await supabase
       .from("categories")
@@ -62,7 +81,26 @@ export function CategoryField({
     }
 
     setOpenTypeMenu(false);
+
+    if (newType === "custom") {
+      setShowCustomManager(true);
+      await loadCustomOptions();
+    }
+
     onRefresh?.();
+  };
+
+  const handleAddOption = async () => {
+    if (!newOptionLabel.trim()) return;
+
+    await addCategoryOption(cat.id, newOptionLabel.trim(), customOptions.length);
+    setNewOptionLabel("");
+    await loadCustomOptions();
+  };
+
+  const handleDeleteOption = async (optionId) => {
+    await deleteCategoryOption(optionId);
+    await loadCustomOptions();
   };
 
   const canEditType = mode === "create" || !cat.is_global;
@@ -153,6 +191,41 @@ export function CategoryField({
       );
     }
 
+    if (cat.type === "custom") {
+      return (
+        <div className="lead-selector">
+          <button
+            className="lead-choose-btn"
+            disabled={locked}
+            onClick={() => !locked && setOpenCustomMenu(prev => !prev)}
+          >
+            {value || "Elegir"}
+          </button>
+          {openCustomMenu && !locked && (
+            <div className="lead-dropdown">
+              {customOptions.length === 0 && (
+                <div className="lead-option" style={{ color: "#999", fontStyle: "italic" }}>
+                  Sin opciones
+                </div>
+              )}
+              {customOptions.map(opt => (
+                <div
+                  key={opt.id}
+                  className="lead-option"
+                  onClick={() => {
+                    onChange(opt.label);
+                    setOpenCustomMenu(false);
+                  }}
+                >
+                  {opt.label}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
     // "own" type — auto-resizing textarea
     return (
       <textarea
@@ -211,6 +284,18 @@ export function CategoryField({
               ⬇
             </button>
           )}
+
+          {/* Show manage button for custom type when unlocked */}
+          {cat.type === "custom" && canEditType && !locked && (
+            <button
+              className="btn"
+              style={{ fontSize: "0.75rem", padding: "2px 6px" }}
+              onClick={() => setShowCustomManager(prev => !prev)}
+              title="Administrar opciones"
+            >
+              ⚙️
+            </button>
+          )}
         </div>
 
         {openTypeMenu && canEditType && (
@@ -227,6 +312,40 @@ export function CategoryField({
           </div>
         )}
       </div>
+
+      {/* CUSTOM OPTIONS MANAGER */}
+      {cat.type === "custom" && showCustomManager && canEditType && (
+        <div className="custom-options-manager">
+          <div className="custom-options-list">
+            {customOptions.length === 0 && (
+              <span style={{ color: "#999", fontSize: "0.85rem", fontStyle: "italic" }}>
+                Sin opciones aún
+              </span>
+            )}
+            {customOptions.map(opt => (
+              <div key={opt.id} className="custom-option-row">
+                <span>{opt.label}</span>
+                <button
+                  className="btn-delete"
+                  onClick={() => handleDeleteOption(opt.id)}
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+          <div className="custom-option-add-row">
+            <input
+              className="input"
+              placeholder="Nueva opción..."
+              value={newOptionLabel}
+              onChange={(e) => setNewOptionLabel(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleAddOption(); }}}
+            />
+            <button className="btn" onClick={handleAddOption}>+</button>
+          </div>
+        </div>
+      )}
 
       {/* INPUT */}
       {renderInput()}
