@@ -225,6 +225,43 @@
   margin: 0;
 }
 
+/* Row that holds the label and the ⋯ toggle button side by side */
+.category-label-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.category-label-row label {
+  flex: 1;
+  margin: 0;
+  font-size: 0.9rem;
+  color: #0D1F44;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The single toggle button that reveals action buttons */
+.btn-toggle-actions {
+  background: transparent;
+  border: 1px solid #0D1F44;
+  color: #0D1F44;
+  border-radius: 6px;
+  cursor: pointer;
+  padding: 1px 5px;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  flex-shrink: 0;
+}
+
+.btn-toggle-actions:hover {
+  background: #0D1F44;
+  color: white;
+}
+
 .category-header-buttons {
   display: flex;
   flex-direction: row;

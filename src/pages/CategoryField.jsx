@@ -34,6 +34,7 @@ export function CategoryField({
   onRefresh,
   onDelete
 }) {
+  const [showButtons, setShowButtons] = useState(false);
   const [openTypeMenu, setOpenTypeMenu] = useState(false);
   const [openLeadMenu, setOpenLeadMenu] = useState(false);
   const [openCustomMenu, setOpenCustomMenu] = useState(false);
@@ -241,6 +242,12 @@ export function CategoryField({
     );
   };
 
+  const hasAnyButton =
+    (canRename && !editingTitle) ||
+    (mode === "create" || (mode === "edit" && !cat.is_global)) ||
+    canEditType ||
+    (cat.type === "custom" && canEditType && !locked);
+
   return (
     <div className="category-input-row">
 
@@ -256,47 +263,62 @@ export function CategoryField({
             onKeyDown={handleTitleKeyDown}
           />
         ) : (
-          <label>{cat.title}</label>
+          <div className="category-label-row">
+            <label>{cat.title}</label>
+
+            {/* Single toggle button — only shown when there are actions available */}
+            {hasAnyButton && (
+              <button
+                className="btn-toggle-actions"
+                onClick={() => setShowButtons(prev => !prev)}
+                title="Opciones"
+              >
+                {showButtons ? "✕" : "⋯"}
+              </button>
+            )}
+          </div>
         )}
 
-        <div className="category-header-buttons">
-          {canRename && !editingTitle && (
-            <button
-              className="btn-rename"
-              onClick={() => setEditingTitle(true)}
-              title="Renombrar categoría"
-            >
-              ✏️
-            </button>
-          )}
+        {/* Action buttons — shown only when toggled */}
+        {showButtons && !editingTitle && (
+          <div className="category-header-buttons">
+            {canRename && (
+              <button
+                className="btn-rename"
+                onClick={() => { setEditingTitle(true); setShowButtons(false); }}
+                title="Renombrar categoría"
+              >
+                ✏️
+              </button>
+            )}
 
-          {(mode === "create" || (mode === "edit" && !cat.is_global)) && (
-            <button className="btn-delete" onClick={onDelete}>
-              🗑
-            </button>
-          )}
+            {(mode === "create" || (mode === "edit" && !cat.is_global)) && (
+              <button className="btn-delete" onClick={onDelete}>
+                🗑
+              </button>
+            )}
 
-          {canEditType && (
-            <button
-              className="type-arrow"
-              onClick={() => setOpenTypeMenu(prev => !prev)}
-            >
-              ⬇
-            </button>
-          )}
+            {canEditType && (
+              <button
+                className="type-arrow"
+                onClick={() => setOpenTypeMenu(prev => !prev)}
+              >
+                ⬇
+              </button>
+            )}
 
-          {/* Show manage button for custom type when unlocked */}
-          {cat.type === "custom" && canEditType && !locked && (
-            <button
-              className="btn"
-              style={{ fontSize: "0.75rem", padding: "2px 6px" }}
-              onClick={() => setShowCustomManager(prev => !prev)}
-              title="Administrar opciones"
-            >
-              ⚙️
-            </button>
-          )}
-        </div>
+            {cat.type === "custom" && canEditType && !locked && (
+              <button
+                className="btn"
+                style={{ fontSize: "0.75rem", padding: "2px 6px" }}
+                onClick={() => setShowCustomManager(prev => !prev)}
+                title="Administrar opciones"
+              >
+                ⚙️
+              </button>
+            )}
+          </div>
+        )}
 
         {openTypeMenu && canEditType && (
           <div className="type-dropdown">
