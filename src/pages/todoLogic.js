@@ -1,5 +1,6 @@
 // todoLogic.js
 import { supabase } from '../supabaseClient';
+import bcrypt from 'bcryptjs';
 
 // Fetch all todo lists from Supabase
 export const fetchItems = async (setItems, setLoading) => {
@@ -62,9 +63,7 @@ export const deleteListing = async (
     if (error) throw error;
 
     setItems(
-      items.filter(
-        i => i.uuid_id !== itemToDelete.uuid_id
-      )
+      items.filter(i => i.uuid_id !== itemToDelete.uuid_id)
     );
   } catch (err) {
     console.error('Failed to delete listing:', err);
@@ -106,4 +105,33 @@ export const renameItem = async (
 
   setRenameModalOpen(false);
   setItemToRename(null);
+};
+
+// Set or remove a password on a list
+export const setListPassword = async (item, password, items, setItems) => {
+  const password_hash = password ? await bcrypt.hash(password, 10) : null;
+
+  const { error } = await supabase
+    .from('todos')
+    .update({ password_hash })
+    .eq('uuid_id', item.uuid_id);
+
+  if (error) {
+    console.error('Failed to set password:', error);
+    return false;
+  }
+
+  setItems(items.map(i =>
+    i.uuid_id === item.uuid_id
+      ? { ...i, password_hash }
+      : i
+  ));
+
+  return true;
+};
+
+// Verify a password attempt before opening a list
+export const verifyListPassword = async (item, attempt) => {
+  if (!item.password_hash) return true;
+  return await bcrypt.compare(attempt, item.password_hash);
 };

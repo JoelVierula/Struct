@@ -99,7 +99,7 @@ export default function Calendar() {
     if (!selectedEvent) return;
 
     const confirmDelete = window.confirm(
-      `¿Eliminar "${selectedEvent.title}"?`
+      `Delete "${selectedEvent.title}"?`
     );
 
     if (!confirmDelete) return;
@@ -147,19 +147,19 @@ export default function Calendar() {
 
   return (
     <div className="calendar-page">
-      <h1>Calendario semanal</h1>
+      <h1>Weekly Calendar</h1>
 
       <div className="calendar-nav">
-        <button onClick={goToPreviousWeek}>Anterior</button>
+        <button onClick={goToPreviousWeek}>Previous</button>
 
         <span className="week-range">
           {weekDates[0].toLocaleDateString()} - {weekDates[6].toLocaleDateString()}
         </span>
 
-        <button onClick={goToNextWeek}>Siguiente</button>
+        <button onClick={goToNextWeek}>Next</button>
 
         <button onClick={() => setModalOpen(true)}>
-          Agregar evento
+          Add Event
         </button>
       </div>
 
@@ -168,7 +168,7 @@ export default function Calendar() {
 
         {weekDates.map((date, index) => (
           <div key={index} className="day-header">
-            {date.toLocaleDateString('es-ES', {
+            {date.toLocaleDateString('en-US', {
               weekday: 'short',
               day: 'numeric'
             })}
@@ -231,16 +231,16 @@ export default function Calendar() {
         ))}
       </div>
 
-      {/* MODAL AGREGAR EVENTO */}
+      {/* ADD EVENT MODAL */}
 
       {modalOpen && (
         <div className="modal-overlay" onClick={() => setModalOpen(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <h2>Agregar evento</h2>
+            <h2>Add Event</h2>
 
             <input
               type="text"
-              placeholder="Título del evento"
+              placeholder="Event title"
               value={eventTitle}
               onChange={e => setEventTitle(e.target.value)}
             />
@@ -259,18 +259,18 @@ export default function Calendar() {
 
             <div className="modal-buttons">
               <button onClick={() => setModalOpen(false)}>
-                Cerrar
+                Close
               </button>
 
               <button onClick={addEvent}>
-                Agregar
+                Add
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* MODAL DETALLES DEL EVENTO */}
+      {/* EVENT DETAILS MODAL */}
 
       {selectedEvent && (
         <div className="modal-overlay" onClick={() => setSelectedEvent(null)}>
@@ -284,21 +284,21 @@ export default function Calendar() {
 
             <div className="modal-buttons">
               <button onClick={() => setSelectedEvent(null)}>
-                Cerrar
+                Close
               </button>
 
               <button
                 style={{ background: "#e54848", color: "white" }}
                 onClick={handleDeleteEvent}
               >
-                Eliminar
+                Delete
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* MODAL ELEMENTO DE AGENDA */}
+      {/* SCHEDULE ITEM MODAL */}
 
       {selectedScheduleItem && (
         <div className="modal-overlay" onClick={() => setSelectedScheduleItem(null)}>
@@ -324,7 +324,7 @@ export default function Calendar() {
 
             <div className="modal-buttons">
               <button onClick={() => setSelectedScheduleItem(null)}>
-                Cerrar
+                Close
               </button>
             </div>
           </div>

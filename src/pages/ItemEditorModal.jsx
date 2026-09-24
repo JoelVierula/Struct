@@ -16,12 +16,12 @@ import { CategoryField } from "./CategoryField";
 const TEMPLATES = [
   {
     id: "roofing-customer-tracking",
-    label: "Techado: Seguimiento de clientes",
+    label: "Roofing: Customer Tracking",
     categories: [
-      { title: "Nombre", type: "own" },
-      { title: "Información de contacto", type: "own" },
-      { title: "Dirección", type: "own" },
-      { title: "Notas", type: "own" }
+      { title: "Name", type: "own" },
+      { title: "Contact Information", type: "own" },
+      { title: "Address", type: "own" },
+      { title: "Notes", type: "own" }
     ]
   }
 ];
@@ -39,7 +39,7 @@ function TemplatesModal({ onClose, onApply }) {
     <div className="modal-overlay">
       <div className="modal">
         <div className="modal-header">
-          <h2>Plantillas</h2>
+          <h2>Templates</h2>
         </div>
 
         <div className="templates-list">
@@ -56,7 +56,7 @@ function TemplatesModal({ onClose, onApply }) {
 
         <div className="modal-actions">
           <button className="btn" onClick={onClose}>
-            Cerrar
+            Close
           </button>
         </div>
       </div>
@@ -262,8 +262,8 @@ export default function ItemEditorModal({
   const handleDeleteCategory = async (cat) => {
     const confirmDelete = window.confirm(
       cat.is_global
-        ? "¿Eliminar esta categoría?\n\nEsto la quitará junto con sus valores de todos los elementos."
-        : "¿Eliminar esta categoría local?\n\nEsto la quitará de este elemento."
+        ? "Delete this category?\n\nThis will remove it along with its values from all items."
+        : "Delete this local category?\n\nThis will remove it from this item."
     );
 
     if (!confirmDelete) return;
@@ -331,8 +331,8 @@ export default function ItemEditorModal({
           <div className="modal-header">
             <h2>
               {mode === "create"
-                ? "Agregar nuevo elemento"
-                : `Editando: ${activeItem?.title}`}
+                ? "Add new item"
+                : `Editing: ${activeItem?.title}`}
             </h2>
             <button
               className="btn-lock"
@@ -344,7 +344,7 @@ export default function ItemEditorModal({
 
           {/* ITEM TITLE */}
           <div className="category-input-row">
-            <label>Nombre del elemento</label>
+            <label>Item name</label>
             <textarea
               value={itemTitle}
               readOnly={globalLocked}
@@ -387,34 +387,34 @@ export default function ItemEditorModal({
               value={newCategoryTitle}
               onChange={(e) => setNewCategoryTitle(e.target.value)}
               className="input"
-              placeholder="Nueva categoría"
+              placeholder="New category"
             />
             <button className="btn" onClick={addCategory}>
-              Agregar
+              Add
             </button>
           </div>
 
           {/* ACTIONS */}
           <div className="modal-actions">
             <button className="btn" onClick={onClose}>
-              Cerrar
+              Close
             </button>
 
             {mode === "create" && (
               <button className="btn" onClick={() => setShowTemplates(true)}>
-                Plantillas
+                Templates
               </button>
             )}
 
             {mode === "create" && (
               <button className="btn-primary" onClick={handleCreateItem}>
-                Crear elemento
+                Create item
               </button>
             )}
 
             {mode === "edit" && (
               <button className="btn-primary" onClick={handleSaveChanges}>
-                Guardar cambios
+                Save changes
               </button>
             )}
           </div>

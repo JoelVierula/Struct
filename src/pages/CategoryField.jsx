@@ -3,22 +3,22 @@ import { supabase } from "../supabaseClient";
 import { updateCategoryTitle, fetchCategoryOptions, addCategoryOption, deleteCategoryOption } from "./supabaseService";
 
 export const CATEGORY_TYPE_OPTIONS = [
-  { label: "Propio",            value: "own"      },
-  { label: "Fecha",             value: "date"     },
-  { label: "Horario",           value: "schedule" },
-  { label: "Cliente potencial", value: "lead"     },
-  { label: "Personalizado",     value: "custom"   },
-  { label: "Foto",              value: "photo"    },
-  { label: "Archivo",          value: "file"     },
+  { label: "Own",              value: "own"      },
+  { label: "Date",             value: "date"     },
+  { label: "Schedule",         value: "schedule" },
+  { label: "Potential client", value: "lead"     },
+  { label: "Custom",           value: "custom"   },
+  { label: "Photo",            value: "photo"    },
+  { label: "File",             value: "file"     },
 ];
 
 const LEAD_OPTIONS = [
-  "Conectado",
-  "Rechazado",
-  "Contacto",
-  "Seguimiento 1",
-  "Seguimiento 2",
-  "Seguimiento 3"
+  "Connected",
+  "Rejected",
+  "Contact",
+  "Follow-up 1",
+  "Follow-up 2",
+  "Follow-up 3"
 ];
 
 function autoResize(el) {
@@ -168,7 +168,7 @@ export function CategoryField({
 
     // Only allow image files
     if (!file.type.startsWith("image/")) {
-      setPhotoError("El archivo debe ser una imagen (JPG, PNG, etc.)");
+      setPhotoError("The file must be an image (JPG, PNG, etc.)");
       return;
     }
 
@@ -176,9 +176,9 @@ export function CategoryField({
     setPhotoError(null);
 
     try {
-      // 1. Compress the image before uploading
+      // 1. Compress the image before uploading.
       //    HEIC files from iPhones can't be drawn on canvas directly,
-      //    so if compression fails we fall back to the original file
+      //    so if compression fails we fall back to the original file.
       let fileToUpload = file;
       try {
         const compressed = await compressImage(file);
@@ -206,11 +206,11 @@ export function CategoryField({
 
         // Show a specific message depending on the error
         if (uploadError.statusCode === "404") {
-          setPhotoError('Bucket no encontrado. Crea un bucket llamado "item-photos" en Supabase Storage.');
+          setPhotoError('Bucket not found. Create a bucket named "item-photos" in Supabase Storage.');
         } else if (uploadError.statusCode === "403") {
-          setPhotoError("Sin permiso para subir. Revisa las políticas RLS del bucket en Supabase.");
+          setPhotoError("No permission to upload. Check the RLS policies for the bucket in Supabase.");
         } else {
-          setPhotoError(`Error al subir: ${uploadError.message}`);
+          setPhotoError(`Upload error: ${uploadError.message}`);
         }
         return;
       }
@@ -227,7 +227,7 @@ export function CategoryField({
 
     } catch (err) {
       console.error("Unexpected photo upload error:", err);
-      setPhotoError(`Error inesperado: ${err.message}`);
+      setPhotoError(`Unexpected error: ${err.message}`);
     } finally {
       setPhotoUploading(false);
       e.target.value = "";
@@ -289,7 +289,7 @@ export function CategoryField({
     // 20 MB size limit — documents over this are unusual and expensive to store
     const MAX_SIZE_MB = 20;
     if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-      setFileError(`El archivo es demasiado grande. Máximo ${MAX_SIZE_MB} MB.`);
+      setFileError(`The file is too large. Maximum ${MAX_SIZE_MB} MB.`);
       e.target.value = "";
       return;
     }
@@ -310,11 +310,11 @@ export function CategoryField({
       if (uploadError) {
         console.error("File upload error:", uploadError);
         if (uploadError.statusCode === "404") {
-          setFileError('Bucket no encontrado. Crea un bucket llamado "item-files" en Supabase Storage.');
+          setFileError('Bucket not found. Create a bucket named "item-files" in Supabase Storage.');
         } else if (uploadError.statusCode === "403") {
-          setFileError("Sin permiso para subir. Revisa las políticas RLS del bucket en Supabase.");
+          setFileError("No permission to upload. Check the RLS policies for the bucket in Supabase.");
         } else {
-          setFileError(`Error al subir: ${uploadError.message}`);
+          setFileError(`Upload error: ${uploadError.message}`);
         }
         return;
       }
@@ -328,7 +328,7 @@ export function CategoryField({
 
     } catch (err) {
       console.error("Unexpected file upload error:", err);
-      setFileError(`Error inesperado: ${err.message}`);
+      setFileError(`Unexpected error: ${err.message}`);
     } finally {
       setFileUploading(false);
       e.target.value = "";
@@ -390,7 +390,7 @@ export function CategoryField({
             disabled={locked}
             onClick={() => !locked && setOpenLeadMenu(prev => !prev)}
           >
-            {value || "Elegir"}
+            {value || "Choose"}
           </button>
           {openLeadMenu && !locked && (
             <div className="lead-dropdown">
@@ -414,13 +414,13 @@ export function CategoryField({
             disabled={locked}
             onClick={() => !locked && setOpenCustomMenu(prev => !prev)}
           >
-            {value || "Elegir"}
+            {value || "Choose"}
           </button>
           {openCustomMenu && !locked && (
             <div className="lead-dropdown">
               {customOptions.length === 0 && (
                 <div className="lead-option" style={{ color: "#999", fontStyle: "italic" }}>
-                  Sin opciones
+                  No options
                 </div>
               )}
               {customOptions.map(opt => (
@@ -445,7 +445,7 @@ export function CategoryField({
               {/* Clicking the thumbnail opens fullscreen */}
               <img
                 src={value}
-                alt="Foto del elemento"
+                alt="Item photo"
                 onClick={() => setPhotoFullscreen(true)}
                 style={{
                   maxWidth: "100%",
@@ -464,14 +464,14 @@ export function CategoryField({
                     onClick={() => photoInputRef.current?.click()}
                     disabled={photoUploading}
                   >
-                    {photoUploading ? "Subiendo..." : "Cambiar foto"}
+                    {photoUploading ? "Uploading..." : "Change photo"}
                   </button>
                   <button
                     className="btn-delete"
                     onClick={handleRemovePhoto}
                     disabled={photoUploading}
                   >
-                    Quitar foto
+                    Remove photo
                   </button>
                 </div>
               )}
@@ -484,7 +484,7 @@ export function CategoryField({
                 disabled={photoUploading}
                 style={{ marginTop: "4px" }}
               >
-                {photoUploading ? "Subiendo..." : "📷 Subir foto"}
+                {photoUploading ? "Uploading..." : "📷 Upload photo"}
               </button>
             )
           )}
@@ -547,7 +547,7 @@ export function CategoryField({
               {/* Full size photo — clicking the photo itself doesn't close */}
               <img
                 src={value}
-                alt="Foto ampliada"
+                alt="Enlarged photo"
                 onClick={(e) => e.stopPropagation()}
                 style={{
                   maxWidth: "100%",
@@ -563,7 +563,7 @@ export function CategoryField({
                 fontSize: "0.8rem",
                 marginTop: "16px"
               }}>
-                Toca fuera de la foto para cerrar
+                Tap outside the photo to close
               </p>
             </div>
           )}
@@ -619,7 +619,7 @@ export function CategoryField({
                 className="btn"
                 style={{ textDecoration: "none", fontSize: "0.8rem" }}
               >
-                Abrir
+                Open
               </a>
 
               {/* Replace / remove buttons — only when unlocked */}
@@ -631,7 +631,7 @@ export function CategoryField({
                     onClick={() => fileInputRef.current?.click()}
                     disabled={fileUploading}
                   >
-                    {fileUploading ? "Subiendo..." : "Cambiar"}
+                    {fileUploading ? "Uploading..." : "Change"}
                   </button>
                   <button
                     className="btn-delete"
@@ -639,7 +639,7 @@ export function CategoryField({
                     onClick={handleRemoveFile}
                     disabled={fileUploading}
                   >
-                    Quitar
+                    Remove
                   </button>
                 </>
               )}
@@ -653,7 +653,7 @@ export function CategoryField({
                 disabled={fileUploading}
                 style={{ marginTop: "4px" }}
               >
-                {fileUploading ? "Subiendo..." : "📎 Subir archivo"}
+                {fileUploading ? "Uploading..." : "📎 Upload file"}
               </button>
             )
           )}
@@ -717,7 +717,7 @@ export function CategoryField({
               <button
                 className="btn-toggle-actions"
                 onClick={() => setShowButtons(prev => !prev)}
-                title="Opciones"
+                title="Options"
               >
                 {showButtons ? "✕" : "⋯"}
               </button>
@@ -730,7 +730,7 @@ export function CategoryField({
             {canRename && (
               <button className="btn-rename"
                 onClick={() => { setEditingTitle(true); setShowButtons(false); }}
-                title="Renombrar categoría">
+                title="Rename category">
                 ✏️
               </button>
             )}
@@ -745,7 +745,7 @@ export function CategoryField({
             {cat.type === "custom" && canEditType && !locked && (
               <button className="btn" style={{ fontSize: "0.75rem", padding: "2px 6px" }}
                 onClick={() => setShowCustomManager(prev => !prev)}
-                title="Administrar opciones">
+                title="Manage options">
                 ⚙️
               </button>
             )}
@@ -770,7 +770,7 @@ export function CategoryField({
           <div className="custom-options-list">
             {customOptions.length === 0 && (
               <span style={{ color: "#999", fontSize: "0.85rem", fontStyle: "italic" }}>
-                Sin opciones aún
+                No options yet
               </span>
             )}
             {customOptions.map(opt => (
@@ -783,7 +783,7 @@ export function CategoryField({
           <div className="custom-option-add-row">
             <input
               className="input"
-              placeholder="Nueva opción..."
+              placeholder="New option..."
               value={newOptionLabel}
               onChange={(e) => setNewOptionLabel(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleAddOption(); }}}

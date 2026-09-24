@@ -17,12 +17,12 @@ export default function ResetPassword() {
     setSuccess("");
 
     if (!password || !confirmPassword) {
-      setError("Por favor, completa ambos campos.");
+      setError("Please fill in both fields.");
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("Las contraseñas no coinciden.");
+      setError("Passwords do not match.");
       return;
     }
 
@@ -37,7 +37,7 @@ export default function ResetPassword() {
     if (error) {
       setError(error.message);
     } else {
-      setSuccess("¡Contraseña actualizada con éxito!");
+      setSuccess("Password updated successfully!");
 
       setTimeout(() => {
         navigate("/");
@@ -48,14 +48,14 @@ export default function ResetPassword() {
   return (
     <div className="reset-page">
       <div className="reset-modal">
-        <h2>Restablecer contraseña</h2>
+        <h2>Reset password</h2>
 
         {error && <div className="reset-error">{error}</div>}
         {success && <div className="reset-success">{success}</div>}
 
         <input
           type="password"
-          placeholder="Nueva contraseña"
+          placeholder="New password"
           className="reset-input"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
@@ -63,7 +63,7 @@ export default function ResetPassword() {
 
         <input
           type="password"
-          placeholder="Confirmar nueva contraseña"
+          placeholder="Confirm new password"
           className="reset-input"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
@@ -74,7 +74,7 @@ export default function ResetPassword() {
           onClick={handleUpdatePassword}
           disabled={loading}
         >
-          {loading ? "Actualizando..." : "Actualizar contraseña"}
+          {loading ? "Updating..." : "Update password"}
         </button>
       </div>
     </div>

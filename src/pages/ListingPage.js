@@ -112,12 +112,12 @@ export default function ItemManager() {
       const rows = text.trim().split("\n").filter(Boolean);
 
       if (rows.length < 2) {
-        setCsvError("El archivo CSV debe tener al menos una fila de encabezado y una fila de datos.");
+        setCsvError("The CSV file must have at least one header row and one data row.");
         setCsvImporting(false);
         return;
       }
 
-      // Handles quoted values (e.g. "Nombre, Apellido") inside a CSV row
+      // Handles quoted values (e.g. "Last, First") inside a CSV row
       const parseRow = (row) =>
         row.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(v => v.trim().replace(/^"|"$/g, ''));
 
@@ -200,16 +200,16 @@ export default function ItemManager() {
       await loadData();
 
       // Show a summary message of what happened
-      const parts = [`Importados ${importedCount} elementos.`];
-      if (newCategoriesCount > 0) parts.push(`${newCategoriesCount} categorías nuevas creadas.`);
-      if (skippedCount > 0) parts.push(`${skippedCount} filas omitidas (sin título).`);
+      const parts = [`Imported ${importedCount} items.`];
+      if (newCategoriesCount > 0) parts.push(`${newCategoriesCount} new categories created.`);
+      if (skippedCount > 0) parts.push(`${skippedCount} rows skipped (no title).`);
       if (newCategoriesCount > 0 || skippedCount > 0) {
         setCsvError(parts.join(" "));
       }
 
     } catch (err) {
       console.error("CSV import failed:", err);
-      setCsvError("Error al importar el CSV. Verifica el formato del archivo.");
+      setCsvError("Error importing the CSV. Please check the file format.");
     } finally {
       setCsvImporting(false);
       // Reset the file input so the same file can be re-uploaded if needed
@@ -221,26 +221,26 @@ export default function ItemManager() {
   return (
     <div className="manager-container">
 
-      {/* Búsqueda y controles superiores */}
+      {/* Search and top controls */}
       <div className="top-controls">
         <button
           className="btn"
           onClick={() => setModalMode('create')}
           disabled={tier === 'free' && items.length >= 10}
         >
-          Agregar elemento
+          Add item
         </button>
 
         <input
           type="text"
-          placeholder="Buscar elementos..."
+          placeholder="Search items..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="input search-input"
         />
 
-        <button className="btn" onClick={() => setOpenSearchModal(true)}>Filtrar</button>
-        <button className="btn-delete" onClick={() => triggerDelete()}>Eliminar seleccionados</button>
+        <button className="btn" onClick={() => setOpenSearchModal(true)}>Filter</button>
+        <button className="btn-delete" onClick={() => triggerDelete()}>Delete selected</button>
 
         {/* CSV IMPORT BUTTON */}
         <input
@@ -255,10 +255,10 @@ export default function ItemManager() {
           onClick={() => document.getElementById("csv-upload").click()}
           disabled={csvImporting}
         >
-          {csvImporting ? "Importando..." : "Importar CSV"}
+          {csvImporting ? "Importing..." : "Import CSV"}
         </button>
 
-        {/* CONTADOR DE ELEMENTOS */}
+        {/* ITEM COUNTER */}
         <div className="item-count">
           {filteredItems.length} / {items.length}
         </div>
@@ -272,7 +272,7 @@ export default function ItemManager() {
         </div>
       )}
 
-      {/* Lista de elementos */}
+      {/* Item list */}
       <div className="items-list">
         {filteredItems.map(item => (
           <div key={item.id} className="item-row">
@@ -289,7 +289,7 @@ export default function ItemManager() {
         ))}
       </div>
 
-      {/* Modal editor */}
+      {/* Editor modal */}
       <ItemEditorModal
         mode={modalMode}
         activeItem={activeItem}
@@ -299,11 +299,11 @@ export default function ItemManager() {
         onRefresh={loadData}
       />
 
-      {/* Modal de filtros */}
+      {/* Filter modal */}
       {openSearchModal && (
         <div className="modal-overlay">
           <div className="modal">
-            <h2>Filtrar por categorías</h2>
+            <h2>Filter by categories</h2>
             {categories.map(cat => (
               <div key={cat.id} className="category-input-row">
                 <label>{cat.title}</label>
@@ -312,27 +312,27 @@ export default function ItemManager() {
                   onChange={e => setCategoryFilters({ ...categoryFilters, [cat.id]: e.target.value })}
                   className="input"
                 >
-                  <option value="">-- Todos --</option>
+                  <option value="">-- All --</option>
                   {categoryDropdowns[cat.id]?.map(val => (
                     <option key={val} value={val}>{val}</option>
                   ))}
                 </select>
               </div>
             ))}
-            <button className="btn" onClick={() => setOpenSearchModal(false)}>Cerrar</button>
+            <button className="btn" onClick={() => setOpenSearchModal(false)}>Close</button>
           </div>
         </div>
       )}
 
-      {/* Modal de confirmación de eliminación */}
+      {/* Delete confirmation modal */}
       {openConfirmDelete && (
         <div className="modal-overlay">
           <div className="modal">
-            <h2>Confirmar eliminación</h2>
-            <p>¿Eliminar {deleteConfig.mode === 'multi' ? 'los elementos seleccionados' : 'este elemento'}?</p>
+            <h2>Confirm deletion</h2>
+            <p>Delete {deleteConfig.mode === 'multi' ? 'the selected items' : 'this item'}?</p>
             <div className="modal-actions">
-              <button className="btn" onClick={() => setOpenConfirmDelete(false)}>Cancelar</button>
-              <button className="btn-delete" onClick={confirmDelete}>Eliminar</button>
+              <button className="btn" onClick={() => setOpenConfirmDelete(false)}>Cancel</button>
+              <button className="btn-delete" onClick={confirmDelete}>Delete</button>
             </div>
           </div>
         </div>

@@ -83,7 +83,7 @@ export default function LoginPage() {
     });
 
     if (error) {
-      alert("¡Correo o contraseña incorrectos!");
+      alert("Incorrect email or password!");
       setCooldown(3);
     } else {
       setIsLoggedIn(true);
@@ -94,7 +94,7 @@ export default function LoginPage() {
   // FORGOT PASSWORD
   const handleForgotPassword = async () => {
     if (!loginEmail) {
-      alert("Por favor, ingresa tu correo electrónico primero.");
+      alert("Please enter your email address first.");
       return;
     }
 
@@ -111,7 +111,7 @@ export default function LoginPage() {
 
   // LOGOUT
   const handleLogout = async () => {
-    const confirmLogout = window.confirm("¿Estás seguro de que quieres cerrar sesión?");
+    const confirmLogout = window.confirm("Are you sure you want to log out?");
     if (!confirmLogout) return;
     await supabase.auth.signOut();
     setIsLoggedIn(false);
@@ -122,12 +122,12 @@ export default function LoginPage() {
     const { email, password, confirmPassword, name } = registrationData;
 
     if (!email || !password || !confirmPassword || !name) {
-      setRegistrationError("Todos los campos son obligatorios.");
+      setRegistrationError("All fields are required.");
       return false;
     }
 
     if (password !== confirmPassword) {
-      setRegistrationError("Las contraseñas no coinciden.");
+      setRegistrationError("Passwords do not match.");
       return false;
     }
 
@@ -182,21 +182,21 @@ export default function LoginPage() {
           {!isLoggedIn ? (
             <>
               <button className="btn" onClick={openLoginModal}>
-                Iniciar sesión
+                Log in
               </button>
 
               <button className="btn" onClick={() => setShowRegister(true)}>
-                Registrarse
+                Sign up
               </button>
             </>
           ) : (
             <>
               <button className="btn" onClick={() => navigate("/home")}>
-                Ir a la aplicación
+                Go to app
               </button>
 
               <button className="btn" onClick={handleLogout}>
-                Cerrar sesión
+                Log out
               </button>
             </>
           )}
@@ -206,14 +206,13 @@ export default function LoginPage() {
       {/* HERO SECTION */}
       <div className="hero-section">
         <div className="hero-text">
-          <h1 className="hero-title">¿Qué es Struct?
-</h1>
+          <h1 className="hero-title">What is Struct?</h1>
           <p className="hero-body">
-            Struct es una aplicación ligera de gestión de datos diseñada principalmente para pequeñas empresas. Te ayuda a organizar la información de forma clara y estructurada, ya que todos los elementos de una misma lista siguen el mismo esquema, lo que facilita la navegación y el mantenimiento de los datos.
+            Struct is a lightweight data management application designed primarily for small businesses. It helps you organize information in a clear and structured way, since all items in the same list follow the same schema, making it easier to navigate and maintain your data.
 
-Los esquemas son completamente personalizables, lo que te permite modificar los campos y ajustar los tipos de categorías para adaptarlos a tus necesidades y flujo de trabajo.
+Schemas are fully customizable, allowing you to modify fields and adjust category types to fit your needs and workflow.
 
-Crear una cuenta es totalmente gratuito. Las cuentas gratuitas incluyen acceso a las mismas funciones que las cuentas de pago; la única limitación es la cantidad de datos que puedes almacenar y gestionar.
+Creating an account is completely free. Free accounts include access to the same features as paid accounts; the only limitation is the amount of data you can store and manage.
 
           </p>
         </div>
@@ -225,7 +224,7 @@ Crear una cuenta es totalmente gratuito. Las cuentas gratuitas incluyen acceso a
             controls
             playsInline
           />
-          <span className="video-overlay-text">Cómo agregar un esquema</span>
+          <span className="video-overlay-text">How to add a schema</span>
         </div>
       </div>
 
@@ -233,11 +232,11 @@ Crear una cuenta es totalmente gratuito. Las cuentas gratuitas incluyen acceso a
       {showLogin && (
         <div className="modal-overlay">
           <div className="modal">
-            <h2>Iniciar sesión</h2>
+            <h2>Log in</h2>
 
             <input
               type="email"
-              placeholder="Correo electrónico"
+              placeholder="Email address"
               className="input"
               value={loginEmail}
               onChange={(e) => setLoginEmail(e.target.value)}
@@ -245,7 +244,7 @@ Crear una cuenta es totalmente gratuito. Las cuentas gratuitas incluyen acceso a
 
             <input
               type="password"
-              placeholder="Contraseña"
+              placeholder="Password"
               className="input"
               value={loginPassword}
               onChange={(e) => setLoginPassword(e.target.value)}
@@ -262,7 +261,7 @@ Crear una cuenta es totalmente gratuito. Las cuentas gratuitas incluyen acceso a
                 }}
                 onClick={handleForgotPassword}
               >
-                ¿Olvidaste tu contraseña?
+                Forgot your password?
               </p>
             ) : (
               <p
@@ -273,7 +272,7 @@ Crear una cuenta es totalmente gratuito. Las cuentas gratuitas incluyen acceso a
                   textAlign: "left"
                 }}
               >
-                ¡Correo de recuperación enviado! Revisa tu bandeja de entrada.
+                Recovery email sent! Check your inbox.
               </p>
             )}
 
@@ -284,11 +283,11 @@ Crear una cuenta es totalmente gratuito. Las cuentas gratuitas incluyen acceso a
                 disabled={cooldown > 0}
                 style={{ opacity: cooldown > 0 ? 0.5 : 1, cursor: cooldown > 0 ? "not-allowed" : "pointer" }}
               >
-                {cooldown > 0 ? `Espera ${cooldown}s...` : "Iniciar sesión"}
+                {cooldown > 0 ? `Wait ${cooldown}s...` : "Log in"}
               </button>
 
               <button className="btn" onClick={closeAllModals}>
-                Cancelar
+                Cancel
               </button>
             </div>
           </div>
@@ -299,7 +298,7 @@ Crear una cuenta es totalmente gratuito. Las cuentas gratuitas incluyen acceso a
       {showRegister && (
         <div className="modal-overlay">
           <div className="modal">
-            <h2>Crear cuenta</h2>
+            <h2>Create account</h2>
 
             {registrationError && (
               <div style={{ color: "red", marginBottom: "10px" }}>
@@ -310,7 +309,7 @@ Crear una cuenta es totalmente gratuito. Las cuentas gratuitas incluyen acceso a
             <form onSubmit={handleRegisterSubmit} className="modal-form">
               <input
                 type="email"
-                placeholder="Correo electrónico"
+                placeholder="Email address"
                 className="input"
                 value={registrationData.email}
                 onChange={(e) =>
@@ -324,7 +323,7 @@ Crear una cuenta es totalmente gratuito. Las cuentas gratuitas incluyen acceso a
 
               <input
                 type="password"
-                placeholder="Contraseña"
+                placeholder="Password"
                 className="input"
                 value={registrationData.password}
                 onChange={(e) =>
@@ -338,7 +337,7 @@ Crear una cuenta es totalmente gratuito. Las cuentas gratuitas incluyen acceso a
 
               <input
                 type="password"
-                placeholder="Confirmar contraseña"
+                placeholder="Confirm password"
                 className="input"
                 value={registrationData.confirmPassword}
                 onChange={(e) =>
@@ -352,7 +351,7 @@ Crear una cuenta es totalmente gratuito. Las cuentas gratuitas incluyen acceso a
 
               <input
                 type="text"
-                placeholder="Nombre"
+                placeholder="Name"
                 className="input"
                 value={registrationData.name}
                 onChange={(e) =>
@@ -366,7 +365,7 @@ Crear una cuenta es totalmente gratuito. Las cuentas gratuitas incluyen acceso a
 
               <div className="btn-row">
                 <button type="submit" className="btn">
-                  Registrarse
+                  Sign up
                 </button>
 
                 <button
@@ -374,7 +373,7 @@ Crear una cuenta es totalmente gratuito. Las cuentas gratuitas incluyen acceso a
                   className="btn"
                   onClick={closeAllModals}
                 >
-                  Cancelar
+                  Cancel
                 </button>
               </div>
             </form>
