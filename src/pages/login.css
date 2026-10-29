@@ -78,34 +78,6 @@
   opacity: 0.9;
 }
 
-/* VIDEO SECTION */
-.video-wrapper {
-  position: relative;
-  display: inline-block;
-  width: 100%;
-  max-width: 220px;
-  flex-shrink: 0;
-}
-
-.tutorial-video {
-  display: block;
-  width: 100%;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-}
-
-.video-overlay-text {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  right: 12px;
-  color: white;
-  font-size: 15px;
-  font-weight: 600;
-  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
-  pointer-events: none;
-}
-
 /* MODAL OVERLAY */
 .modal-overlay {
   position: fixed;
@@ -181,6 +153,438 @@
 
 body {
   margin: 0px;
+}
+
+/* =========================
+   DEMO TOOL ("Try it without an account")
+   Mirrors the look of the real item manager (ItemManager.css):
+   gray panel, navy text and borders, blue buttons, red delete.
+   Everything is prefixed with demo- so it can't clash with the
+   .btn / .input / .modal rules above.
+========================= */
+
+.demo-section {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 48px 64px;
+  box-sizing: border-box;
+}
+
+.demo-intro {
+  color: white;
+  margin-bottom: 20px;
+}
+
+.demo-intro h2 {
+  font-size: 32px;
+  line-height: 1.2;
+  margin: 0 0 12px 0;
+}
+
+.demo-intro p {
+  font-size: 17px;
+  line-height: 1.6;
+  margin: 0;
+  opacity: 0.9;
+  max-width: 62ch;
+}
+
+/* Panel (same look as .manager-container) */
+.demo-card {
+  display: flex;
+  flex-direction: column;
+  padding: 15px;
+  background-color: gray;
+  color: #0D1F44;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  font-family: Arial, sans-serif;
+}
+
+/* Toolbar (same look as .top-controls) */
+.demo-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.demo-toolbar .demo-input,
+.demo-toolbar .demo-btn {
+  height: 36px;
+  font-size: 0.9rem;
+}
+
+.demo-search {
+  flex: 1;
+  min-width: 150px;
+}
+
+.demo-count {
+  margin-left: auto;
+  font-size: 0.9rem;
+  color: white;
+}
+
+/* Item list (same look as .items-list / .item-row) */
+.demo-list {
+  border-top: 2px solid #0D1F44;
+  max-height: 340px;
+  overflow-y: auto;
+  padding-top: 10px;
+}
+
+.demo-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.demo-list::-webkit-scrollbar-thumb {
+  background-color: #0D1F44;
+  border-radius: 3px;
+}
+
+.demo-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+
+.demo-row:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.demo-row-title {
+  flex: 1;
+  cursor: pointer;
+  word-break: break-word;
+}
+
+.demo-muted {
+  color: #e8ecf7;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+.demo-empty {
+  margin: 8px 0;
+}
+
+/* Inputs */
+.demo-input {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #0D1F44;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-family: Arial, sans-serif;
+  background-color: white;
+  color: #0D1F44;
+  box-sizing: border-box;
+}
+
+.demo-input:focus {
+  outline: none;
+  border-color: #1054E4;
+  box-shadow: 0 0 0 3px rgba(16, 84, 228, 0.15);
+}
+
+.demo-input:disabled {
+  opacity: 0.7;
+}
+
+.demo-textarea {
+  display: block;
+  resize: none;
+  overflow: hidden;
+  min-height: 34px;
+  line-height: 1.4;
+}
+
+/* Buttons */
+.demo-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  min-height: 32px;
+  background-color: #1054E4;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+
+.demo-btn:hover {
+  background-color: #0d3bc0;
+}
+
+.demo-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.demo-btn:disabled:hover {
+  background-color: #1054E4;
+}
+
+.demo-btn-danger {
+  background-color: #e54848;
+}
+
+.demo-btn-danger:hover {
+  background-color: #b93636;
+}
+
+.demo-btn-small {
+  min-height: 0;
+  padding: 3px 8px;
+  font-size: 0.8rem;
+}
+
+.demo-btn:focus-visible,
+.demo-icon-btn:focus-visible {
+  outline: 2px solid #1054E4;
+  outline-offset: 2px;
+}
+
+/* Small outlined buttons (⋯, lock, remove option) */
+.demo-icon-btn {
+  background: transparent;
+  border: 1px solid #0D1F44;
+  color: #0D1F44;
+  border-radius: 6px;
+  cursor: pointer;
+  padding: 1px 6px;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  flex-shrink: 0;
+}
+
+.demo-icon-btn:hover {
+  background: #0D1F44;
+  color: white;
+}
+
+/* Modals (same look as ItemManager.css .modal) */
+.demo-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(13, 31, 68, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.demo-overlay-top {
+  z-index: 110;
+}
+
+.demo-modal {
+  background-color: #ffffff;
+  color: #0D1F44;
+  padding: 20px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90%;
+  overflow-y: auto;
+  box-sizing: border-box;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  font-family: Arial, sans-serif;
+}
+
+.demo-modal-small {
+  max-width: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.demo-modal h3 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.demo-modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.demo-hr {
+  border: 0;
+  height: 1px;
+  background-color: #0D1F44;
+  margin: 12px 0;
+}
+
+.demo-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+/* Category fields: label column on the left, input on the right */
+.demo-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.demo-field-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  width: 120px;
+  flex-shrink: 0;
+  padding-top: 6px;
+}
+
+.demo-field-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.demo-field-head {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.demo-field-head label {
+  flex: 1;
+  margin: 0;
+  font-size: 0.9rem;
+  color: #0D1F44;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.demo-tools {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.demo-type-select {
+  width: auto;
+  padding: 2px 4px;
+  font-size: 0.8rem;
+}
+
+/* Custom options manager */
+.demo-options-manager {
+  border: 1px solid #0D1F44;
+  border-radius: 6px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background-color: #f7f9ff;
+}
+
+.demo-option-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 6px;
+  border: 1px solid #cdd6f0;
+  border-radius: 6px;
+  background-color: white;
+  font-size: 0.85rem;
+  color: #0D1F44;
+}
+
+.demo-add-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.demo-add-row .demo-input {
+  flex: 1;
+}
+
+/* DEMO: TABLETS */
+@media (max-width: 768px) {
+  .demo-section {
+    padding: 0 24px 48px;
+  }
+
+  .demo-intro h2 {
+    font-size: 26px;
+  }
+
+  .demo-intro p {
+    font-size: 16px;
+  }
+}
+
+/* DEMO: PHONES */
+@media (max-width: 480px) {
+  .demo-section {
+    padding: 0 16px 40px;
+  }
+
+  .demo-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .demo-count {
+    margin-left: 0;
+  }
+
+  .demo-modal {
+    width: 95%;
+    padding: 15px;
+  }
+
+  /* Stack label above input on narrow screens */
+  .demo-field {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .demo-field-side {
+    width: 100%;
+    padding-top: 0;
+  }
+
+  .demo-field-main {
+    width: 100%;
+  }
+
+  /* 16px stops iOS from zooming into inputs */
+  .demo-input {
+    font-size: 16px;
+  }
 }
 
 /* =========================
@@ -282,8 +686,4 @@ body {
     font-size: 16px;
   }
 
-  .video-wrapper {
-    max-width: 180px;
-    align-self: center;
-  }
 }

@@ -83,8 +83,20 @@ export default function ItemEditorModal({
 
   const textareaRefs = useRef({});
 
+  // Refs that always hold the latest values, so loadCategories can read the
+  // current unsaved edits without needing them as dependencies (which would
+  // cause the INIT effect below to re-run and wipe everything).
+  const categoryValuesRef = useRef({});
+  const dirtyValuesRef = useRef({});
+  categoryValuesRef.current = categoryValues;
+  dirtyValuesRef.current = dirtyValues;
+
   // ---------------- LOAD CATEGORIES ----------------
-  const loadCategories = useCallback(async () => {
+  // preserveEdits = false → full reset (used when opening / switching items)
+  // preserveEdits = true  → keep values the user typed but hasn't saved yet
+  //                         (used after changing a category type, renaming,
+  //                          deleting a category, etc.)
+  const loadCategories = useCallback(async (preserveEdits = false) => {
     try {
       const cats = await fetchCategories(
         listingId,
@@ -94,22 +106,35 @@ export default function ItemEditorModal({
       setCategories(cats);
 
       const values = {};
+      const stillDirty = {};
 
       cats.forEach((cat) => {
-        const existingValue =
-          activeItem?.item_values?.find(
-            (iv) => iv.category_id === cat.id
-          )?.value || "";
-
-        values[cat.id] = existingValue;
+        if (preserveEdits && dirtyValuesRef.current[cat.id]) {
+          // User has unsaved input for this category, so keep it
+          values[cat.id] = categoryValuesRef.current[cat.id] ?? "";
+          stillDirty[cat.id] = true;
+        } else {
+          // Otherwise use the saved value
+          values[cat.id] =
+            activeItem?.item_values?.find(
+              (iv) => iv.category_id === cat.id
+            )?.value || "";
+        }
       });
 
       setCategoryValues(values);
-      setDirtyValues({});
+      setDirtyValues(preserveEdits ? stillDirty : {});
     } catch (err) {
       console.error("Failed to load categories:", err);
     }
   }, [mode, activeItem, listingId]);
+
+  // Used by CategoryField (type change, rename) and category deletion.
+  // Reloads categories but keeps unsaved input.
+  const refreshCategories = useCallback(
+    () => loadCategories(true),
+    [loadCategories]
+  );
 
   // ---------------- INIT ----------------
   useEffect(() => {
@@ -123,7 +148,8 @@ export default function ItemEditorModal({
       setGlobalLocked(true);
     }
 
-    loadCategories();
+    // Full reset when the modal opens or the item changes
+    loadCategories(false);
   }, [mode, activeItem, loadCategories]);
 
   // ---------------- RESIZE ALL TEXTAREAS AFTER VALUES LOAD ----------------
@@ -216,27 +242,47 @@ export default function ItemEditorModal({
           .eq("id", activeItem.id);
       }
 
-      const updates = Object.keys(dirtyValues);
+      // Ask the database for the REAL rows, because activeItem.item_values
+      // is stale (it doesn't know about rows created while the modal was open)
+      const { data: dbRows, error: rowsError } = await supabase
+        .from("item_values")
+        .select("id, category_id")
+        .eq("item_id", activeItem.id);
 
-      for (const catId of updates) {
-        const value = categoryValues[catId];
+      if (rowsError) throw rowsError;
 
-        const existing = activeItem?.item_values?.find(
-          (iv) => iv.category_id === catId
-        );
+      for (const catId of Object.keys(dirtyValues)) {
+        const value = categoryValues[catId] ?? "";
+        const hasValue = value.trim() !== "";
 
-        if (!value || !value.trim()) {
-          if (existing) {
-            await supabase
-              .from("item_values")
-              .delete()
-              .eq("id", existing.id);
+        const cat = categories.find((c) => c.id === catId);
+        const isLocal = cat && !cat.is_global;
+
+        // All rows for this item + category (normally 1, but may be more
+        // if earlier saves created duplicates)
+        const rows = (dbRows || []).filter((r) => r.category_id === catId);
+        const [keep, ...extras] = rows;
+
+        // Clean up duplicates
+        if (extras.length > 0) {
+          await supabase
+            .from("item_values")
+            .delete()
+            .in("id", extras.map((r) => r.id));
+        }
+
+        // Empty value on a GLOBAL category: remove the row.
+        // Empty value on a LOCAL category: keep the row, otherwise the
+        // category would disappear from this item.
+        if (!hasValue && !isLocal) {
+          if (keep) {
+            await supabase.from("item_values").delete().eq("id", keep.id);
           }
           continue;
         }
 
-        if (existing) {
-          await updateValueAPI(existing.id, value);
+        if (keep) {
+          await updateValueAPI(keep.id, value);
         } else {
           await supabase.from("item_values").insert([
             {
@@ -252,7 +298,6 @@ export default function ItemEditorModal({
       setDirtyValues({});
       onRefresh();
       onClose();
-
     } catch (err) {
       console.error("Failed to save changes:", err);
     }
@@ -275,9 +320,10 @@ export default function ItemEditorModal({
         .eq("category_id", cat.id);
 
       await deleteCategoryAPI(cat.id);
-      await loadCategories();
-      onRefresh();
 
+      // Keep unsaved input in the other categories
+      await loadCategories(true);
+      onRefresh();
     } catch (err) {
       console.error(err);
     }
@@ -371,7 +417,7 @@ export default function ItemEditorModal({
                 value={categoryValues[cat.id]}
                 locked={globalLocked}
                 onChange={(val, el) => handleChange(cat.id, val, el)}
-                onRefresh={loadCategories}
+                onRefresh={refreshCategories}
                 onDelete={() => handleDeleteCategory(cat)}
                 textareaRef={(el) => {
                   textareaRefs.current[cat.id] = el;
