@@ -44,8 +44,8 @@ function makeInitialData() {
   return {
     categories: [phone, status, visit],
     items: [
-      { id: uid(), title: "Anna Virtanen", values: { [phone.id]: "040 123 4567", [status.id]: "Connected",   [visit.id]: "2026-11-03" } },
-      { id: uid(), title: "Mika Laine",    values: { [phone.id]: "050 987 6543", [status.id]: "Follow-up 1", [visit.id]: "2026-11-10" } },
+      { id: uid(), title: "Kristy Reyes", values: { [phone.id]: "(206) 342-8631", [status.id]: "Connected",   [visit.id]: "2026-11-03" } },
+      { id: uid(), title: "Joanne Loyd",    values: { [phone.id]: "(717) 550-1675", [status.id]: "Follow-up 1", [visit.id]: "2026-11-10" } },
     ],
   };
 }
