@@ -465,7 +465,7 @@ export default function LoginPage() {
     }
 
     const { error } = await supabase.auth.resetPasswordForEmail(loginEmail, {
-      redirectTo: "http://localhost:3000/reset-password"
+      redirectTo: "https://struct-datamanagement.vercel.app/reset-password"
     });
 
     if (error) {
